@@ -7,21 +7,18 @@ import (
 	"strconv"
 )
 
-// https://id3.org/ID3v1 - documentation
-
-const ID3V1SIZE int = 128
-
-type ID3v1Tags struct {
+type ID3v11Tags struct {
 	SongName string
 	Artist   string
 	Album    string
 	Year     int
 	Comment  string
-	Genre    int
+	Track    int
+	Genre    string
 }
 
-// Retrieves ID3v1 field values of provided io.ReadSeeker (usually a file)
-func GetID3v1Tags(rs io.ReadSeeker) (*ID3v1Tags, error) {
+// Retrieves ID3v1.1 field values of provided io.ReadSeeker (usually a file)
+func GetID3v11Tags(rs io.ReadSeeker) (*ID3v11Tags, error) {
 	// set reader to the last 128 bytes
 	_, err := rs.Seek(-int64(ID3V1SIZE), io.SeekEnd)
 	if err != nil {
@@ -62,10 +59,24 @@ func GetID3v1Tags(rs io.ReadSeeker) (*ID3v1Tags, error) {
 		return nil, fmt.Errorf("could not convert yearbytes into int: %s", err)
 	}
 
-	comment, err := read(rs, 30)
+	comment, err := read(rs, 28)
 	if err != nil {
 		return nil, err
 	}
+
+	// skip 1 null byte
+	_, err = read(rs, 1)
+	if err != nil {
+		return nil, err
+	}
+
+	trackByte, err := read(rs, 1)
+	if err != nil {
+		return nil, err
+	}
+
+	// track is one byte by specification
+	track := int(trackByte[0])
 
 	genreByte, err := read(rs, 1)
 	if err != nil {
@@ -74,36 +85,41 @@ func GetID3v1Tags(rs io.ReadSeeker) (*ID3v1Tags, error) {
 	// genre is one byte by specification
 	genre := int(genreByte[0])
 
-	return &ID3v1Tags{
+	return &ID3v11Tags{
 		SongName: string(songname),
 		Artist:   string(artist),
 		Album:    string(album),
 		Year:     year,
 		Comment:  string(comment),
-		Genre:    genre,
+		Track:    track,
+		Genre:    ID3v1Genres[genre],
 	}, nil
 }
 
-func (t *ID3v1Tags) GetSongName() string {
+func (t *ID3v11Tags) GetSongName() string {
 	return t.SongName
 }
 
-func (t *ID3v1Tags) GetArtist() string {
+func (t *ID3v11Tags) GetArtist() string {
 	return t.Artist
 }
 
-func (t *ID3v1Tags) GetAlbum() string {
+func (t *ID3v11Tags) GetAlbum() string {
 	return t.Album
 }
 
-func (t *ID3v1Tags) GetYear() int {
+func (t *ID3v11Tags) GetYear() int {
 	return t.Year
 }
 
-func (t *ID3v1Tags) GetComment() string {
+func (t *ID3v11Tags) GetComment() string {
 	return t.Comment
 }
 
-func (t *ID3v1Tags) GetGenre() int {
+func (t *ID3v11Tags) GetTrack() int {
+	return t.Track
+}
+
+func (t *ID3v11Tags) GetGenre() string {
 	return t.Genre
 }
