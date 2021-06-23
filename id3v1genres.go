@@ -2,7 +2,7 @@ package id3ed
 
 // https://en.wikipedia.org/wiki/List_of_ID3v1_Genres
 
-var ID3v1Genres = map[int]string{
+var id3v1genres = map[int]string{
 	0:   "Blues",
 	1:   "Classic Rock",
 	2:   "Country",

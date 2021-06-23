@@ -72,7 +72,10 @@ func GetID3v1Tags(rs io.ReadSeeker) (*ID3v1Tags, error) {
 		return nil, err
 	}
 	// genre is one byte by specification
-	genre := int(genreByte[0])
+	genre, exists := id3v1genres[int(genreByte[0])]
+	if !exists {
+		genre = ""
+	}
 
 	return &ID3v1Tags{
 		SongName: string(songname),
@@ -80,7 +83,7 @@ func GetID3v1Tags(rs io.ReadSeeker) (*ID3v1Tags, error) {
 		Album:    string(album),
 		Year:     year,
 		Comment:  string(comment),
-		Genre:    ID3v1Genres[genre],
+		Genre:    genre,
 	}, nil
 }
 
