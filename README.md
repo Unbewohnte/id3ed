@@ -2,7 +2,10 @@
 ## Library for encoding/decoding ID3 tags
 
 # Installation 
-`go get https://github.com/Unbewohnte/id3ed`
+
+```
+go get github.com/Unbewohnte/id3ed
+```
 
 # Usage
 
@@ -33,7 +36,6 @@ func main() {
 
     // etc.
 }
-
 ```
 
 # Under construction !
