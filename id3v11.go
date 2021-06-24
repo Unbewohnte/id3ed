@@ -99,30 +99,9 @@ func GetID3v11Tags(rs io.ReadSeeker) (*ID3v11Tags, error) {
 	}, nil
 }
 
-func (t *ID3v11Tags) GetSongName() string {
-	return t.SongName
-}
+// Writes given ID3v1.1 tags to dst
+func SetID3v11Tags(dst io.WriteSeeker, tags ID3v11Tags) error {
+	dst.Seek(0, io.SeekEnd)
 
-func (t *ID3v11Tags) GetArtist() string {
-	return t.Artist
-}
-
-func (t *ID3v11Tags) GetAlbum() string {
-	return t.Album
-}
-
-func (t *ID3v11Tags) GetYear() int {
-	return t.Year
-}
-
-func (t *ID3v11Tags) GetComment() string {
-	return t.Comment
-}
-
-func (t *ID3v11Tags) GetTrack() int {
-	return t.Track
-}
-
-func (t *ID3v11Tags) GetGenre() string {
-	return t.Genre
+	return nil
 }

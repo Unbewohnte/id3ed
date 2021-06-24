@@ -9,6 +9,7 @@ go get github.com/Unbewohnte/id3ed
 
 # Usage
 
+## Decoding ID3v1.1
 ```
 package main
 
@@ -40,6 +41,10 @@ func main() {
 
     // etc.
 }
+```
+
+## Encoding ID3v1.1
+```
 ```
 
 # Testing

@@ -53,11 +53,11 @@ func GetID3v1Tags(rs io.ReadSeeker) (*ID3v1Tags, error) {
 		return nil, err
 	}
 
-	yearBytes, err := read(rs, 4)
+	yearStr, err := readToString(rs, 4)
 	if err != nil {
 		return nil, err
 	}
-	year, err := strconv.Atoi(string(yearBytes))
+	year, err := strconv.Atoi(yearStr)
 	if err != nil {
 		return nil, fmt.Errorf("could not convert yearbytes into int: %s", err)
 	}
@@ -87,26 +87,9 @@ func GetID3v1Tags(rs io.ReadSeeker) (*ID3v1Tags, error) {
 	}, nil
 }
 
-func (t *ID3v1Tags) GetSongName() string {
-	return t.SongName
-}
+// Writes given ID3v1.0 tags to dst
+func SetID3v1Tags(dst io.WriteSeeker, tags ID3v11Tags) error {
+	dst.Seek(0, io.SeekEnd)
 
-func (t *ID3v1Tags) GetArtist() string {
-	return t.Artist
-}
-
-func (t *ID3v1Tags) GetAlbum() string {
-	return t.Album
-}
-
-func (t *ID3v1Tags) GetYear() int {
-	return t.Year
-}
-
-func (t *ID3v1Tags) GetComment() string {
-	return t.Comment
-}
-
-func (t *ID3v1Tags) GetGenre() string {
-	return t.Genre
+	return nil
 }

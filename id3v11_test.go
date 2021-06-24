@@ -16,12 +16,12 @@ func TestGetID3v11Tags(t *testing.T) {
 		t.Errorf("GetID3v1Tags failed: %s", err)
 	}
 
-	if mp3tags.GetArtist() != "Artist" {
+	if mp3tags.Artist != "Artist" {
 		fmt.Printf("%v", mp3tags.Artist)
-		t.Errorf("GetID3v1Tags has failed:  expected %v; got %v", "Artist", mp3tags.GetArtist())
+		t.Errorf("GetID3v1Tags has failed:  expected %v; got %v", "Artist", mp3tags.Artist)
 	}
 
-	if mp3tags.GetTrack() != 8 {
-		t.Errorf("GetID3v1Tags has failed: expected %v; got %v", 8, mp3tags.GetTrack())
+	if mp3tags.Track != 8 {
+		t.Errorf("GetID3v1Tags has failed: expected %v; got %v", 8, mp3tags.Track)
 	}
 }

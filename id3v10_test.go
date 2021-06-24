@@ -15,9 +15,7 @@ func TestGetID3v1Tags(t *testing.T) {
 		t.Errorf("GetID3v1Tags failed: %s", err)
 	}
 
-	comment := tags.GetComment()
-
-	if comment != "Comment here " {
-		t.Errorf("GetID3v1Tags failed: expected %s; got %s", "Comment here ", comment)
+	if tags.Comment != "Comment here " {
+		t.Errorf("GetID3v1Tags failed: expected %s; got %s", "Comment here ", tags.Comment)
 	}
 }
