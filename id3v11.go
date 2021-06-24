@@ -32,7 +32,7 @@ func GetID3v11Tags(rs io.ReadSeeker) (*ID3v11Tags, error) {
 
 	if !bytes.Equal(tag, []byte("TAG")) {
 		// no TAG, given file does not use ID3v1
-		return nil, fmt.Errorf("does not use ID3v1")
+		return nil, fmt.Errorf("does not use ID3v1: expected %s; got %s", "TAG", tag)
 	}
 
 	songname, err := readToString(rs, 30)
@@ -50,11 +50,11 @@ func GetID3v11Tags(rs io.ReadSeeker) (*ID3v11Tags, error) {
 		return nil, err
 	}
 
-	yearBytes, err := read(rs, 4)
+	yearStr, err := readToString(rs, 4)
 	if err != nil {
 		return nil, err
 	}
-	year, err := strconv.Atoi(string(yearBytes))
+	year, err := strconv.Atoi(yearStr)
 	if err != nil {
 		return nil, fmt.Errorf("could not convert yearbytes into int: %s", err)
 	}

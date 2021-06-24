@@ -16,12 +16,22 @@ func read(rs io.Reader, n int) ([]byte, error) {
 	return read, nil
 }
 
-// Shortcut function to read n bytes and convert them into string
+// Shortcut function to read n bytes and convert them into string.
+// If encountered zero-byte - converts to string only previously read bytes
 func readToString(rs io.Reader, n int) (string, error) {
 	read := make([]byte, n)
 	_, err := rs.Read(read)
 	if err != nil {
 		return "", fmt.Errorf("could not read from reader: %s", err)
 	}
-	return string(read), nil
+
+	var readString string
+	for _, b := range read {
+		if b == 0 {
+			break
+		}
+		readString += string(b)
+	}
+
+	return readString, nil
 }

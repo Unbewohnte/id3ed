@@ -23,20 +23,35 @@ func main() {
         panic(err)
     }
 
+    // extract ID3v1.1 tags 
     mp3tags, err := GetID3v11Tags(mp3file)
     if err != nil {
        panic(err)
     }
 
-    // printing all tags
+    // print all tags
     fmt.Printf("%+v",mp3tags)
 
-    // getting certain tag
+    // get a certain tag from "getter" function
     songname := mp3tags.GetSongName()
+    
+    // get a certain tag from struct field
+    genre := mp3tags.Genre
 
     // etc.
 }
 ```
 
+# Testing
+
+```
+go test
+```
+or
+```
+go test -v
+```
+to get a verbose output
+
 # Under construction !
-## Bugs are a possibility rn in this state
+## Bugs are a possibility rn in this state, the package is still not tested properly 
