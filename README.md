@@ -45,6 +45,28 @@ func main() {
 
 ## Encoding ID3v1.1
 ```
+	f, err := os.OpenFile("/path/to/file/myfile.mp3",os.O_WRONLY, os.ModePerm)
+	if err != nil {
+		panic(err)
+	}
+	defer f.Close()
+
+    // create your tags struct
+	tags := ID3v11Tags{
+		SongName: "mysong",
+		Artist:   "me",
+		Album:    "my album",
+		Year:     2021,
+		Comment:  "Cool song",
+        Track:    1,
+		Genre:    "Christian Gangsta Rap", // list of genres see "id3v1genres.go"
+	}
+
+    // write given tags in file
+	err = WriteID3v11Tags(f, tags)
+	if err != nil {
+		panic(err)
+	}
 ```
 
 # Testing

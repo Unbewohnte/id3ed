@@ -2,6 +2,7 @@ package id3ed
 
 import (
 	"bytes"
+	"encoding/binary"
 	"fmt"
 	"io"
 	"strconv"
@@ -75,15 +76,20 @@ func GetID3v11Tags(rs io.ReadSeeker) (*ID3v11Tags, error) {
 		return nil, err
 	}
 
-	// track is one byte by specification
-	track := int(trackByte[0])
+	track, err := binary.ReadVarint(bytes.NewBuffer(trackByte))
+	if err != nil {
+		return nil, err
+	}
 
 	genreByte, err := read(rs, 1)
 	if err != nil {
 		return nil, err
 	}
-	// genre is one byte by specification
-	genre, exists := id3v1genres[int(genreByte[0])]
+	genreInt, err := binary.ReadVarint(bytes.NewBuffer(genreByte))
+	if err != nil {
+		return nil, err
+	}
+	genre, exists := id3v1genres[int(genreInt)]
 	if !exists {
 		genre = ""
 	}
@@ -94,14 +100,78 @@ func GetID3v11Tags(rs io.ReadSeeker) (*ID3v11Tags, error) {
 		Album:    album,
 		Year:     year,
 		Comment:  comment,
-		Track:    track,
+		Track:    int(track),
 		Genre:    genre,
 	}, nil
 }
 
 // Writes given ID3v1.1 tags to dst
-func SetID3v11Tags(dst io.WriteSeeker, tags ID3v11Tags) error {
+func WriteID3v11Tags(dst io.WriteSeeker, tags ID3v11Tags) error {
 	dst.Seek(0, io.SeekEnd)
+
+	// TAG
+	_, err := dst.Write([]byte("TAG"))
+	if err != nil {
+		return fmt.Errorf("could not write to dst: %s", err)
+	}
+
+	// Song name
+	err = writeToExtend(dst, []byte(tags.SongName), 30)
+	if err != nil {
+		return fmt.Errorf("could not write to dst: %s", err)
+	}
+
+	// Artist
+	err = writeToExtend(dst, []byte(tags.Artist), 30)
+	if err != nil {
+		return fmt.Errorf("could not write to dst: %s", err)
+	}
+
+	// Album
+	err = writeToExtend(dst, []byte(tags.Album), 30)
+	if err != nil {
+		return fmt.Errorf("could not write to dst: %s", err)
+	}
+
+	// Year
+	err = writeToExtend(dst, []byte(fmt.Sprint(tags.Year)), 4)
+	if err != nil {
+		return fmt.Errorf("could not write to dst: %s", err)
+	}
+
+	// Comment
+	err = writeToExtend(dst, []byte(tags.Comment), 28)
+	if err != nil {
+		return fmt.Errorf("could not write to dst: %s", err)
+	}
+
+	_, err = dst.Write([]byte{0})
+	if err != nil {
+		return fmt.Errorf("could not write to dst: %s", err)
+	}
+
+	// Track
+	trackBytes := make([]byte, 1)
+	binary.PutVarint(trackBytes, int64(tags.Track))
+	// binary.BigEndian.PutUint16(trackBytes, uint16(tags.Track))
+	_, err = dst.Write(trackBytes)
+	if err != nil {
+		return fmt.Errorf("could not write to dst: %s", err)
+	}
+
+	//Genre
+	genreCode := getKey(id3v1genres, tags.Genre)
+	if genreCode == -1 {
+		// if no genre found - encode genre code as 255
+		genreCode = 255
+	}
+	genrebyte := make([]byte, 1)
+	binary.PutVarint(genrebyte, int64(genreCode))
+
+	err = writeToExtend(dst, genrebyte, 1)
+	if err != nil {
+		return fmt.Errorf("could not write to dst: %s", err)
+	}
 
 	return nil
 }

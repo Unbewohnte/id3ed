@@ -2,6 +2,7 @@ package id3ed
 
 import (
 	"bytes"
+	"encoding/binary"
 	"fmt"
 	"io"
 	"strconv"
@@ -71,8 +72,11 @@ func GetID3v1Tags(rs io.ReadSeeker) (*ID3v1Tags, error) {
 	if err != nil {
 		return nil, err
 	}
-	// genre is one byte by specification
-	genre, exists := id3v1genres[int(genreByte[0])]
+	genreInt, err := binary.ReadVarint(bytes.NewBuffer(genreByte))
+	if err != nil {
+		return nil, err
+	}
+	genre, exists := id3v1genres[int(genreInt)]
 	if !exists {
 		genre = ""
 	}
@@ -88,8 +92,58 @@ func GetID3v1Tags(rs io.ReadSeeker) (*ID3v1Tags, error) {
 }
 
 // Writes given ID3v1.0 tags to dst
-func SetID3v1Tags(dst io.WriteSeeker, tags ID3v11Tags) error {
+func WriteID3v1Tags(dst io.WriteSeeker, tags ID3v1Tags) error {
 	dst.Seek(0, io.SeekEnd)
+
+	// TAG
+	_, err := dst.Write([]byte("TAG"))
+	if err != nil {
+		return err
+	}
+
+	// Song name
+	err = writeToExtend(dst, []byte(tags.SongName), 30)
+	if err != nil {
+		return err
+	}
+
+	// Artist
+	err = writeToExtend(dst, []byte(tags.Artist), 30)
+	if err != nil {
+		return err
+	}
+
+	// Album
+	err = writeToExtend(dst, []byte(tags.Album), 30)
+	if err != nil {
+		return err
+	}
+
+	// Year
+	err = writeToExtend(dst, []byte(fmt.Sprint(tags.Year)), 4)
+	if err != nil {
+		return err
+	}
+
+	// Comment
+	err = writeToExtend(dst, []byte(tags.Comment), 30)
+	if err != nil {
+		return err
+	}
+
+	// Genre
+	genreCode := getKey(id3v1genres, tags.Genre)
+	if genreCode == -1 {
+		// if no genre found - encode genre code as 255
+		genreCode = 255
+	}
+	genrebyte := make([]byte, 1)
+	binary.PutVarint(genrebyte, int64(genreCode))
+
+	_, err = dst.Write(genrebyte)
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
