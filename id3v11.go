@@ -116,31 +116,31 @@ func WriteID3v11Tags(dst io.WriteSeeker, tags ID3v11Tags) error {
 	}
 
 	// Song name
-	err = writeToExtend(dst, []byte(tags.SongName), 30)
+	err = writeToExtent(dst, []byte(tags.SongName), 30)
 	if err != nil {
 		return fmt.Errorf("could not write to dst: %s", err)
 	}
 
 	// Artist
-	err = writeToExtend(dst, []byte(tags.Artist), 30)
+	err = writeToExtent(dst, []byte(tags.Artist), 30)
 	if err != nil {
 		return fmt.Errorf("could not write to dst: %s", err)
 	}
 
 	// Album
-	err = writeToExtend(dst, []byte(tags.Album), 30)
+	err = writeToExtent(dst, []byte(tags.Album), 30)
 	if err != nil {
 		return fmt.Errorf("could not write to dst: %s", err)
 	}
 
 	// Year
-	err = writeToExtend(dst, []byte(fmt.Sprint(tags.Year)), 4)
+	err = writeToExtent(dst, []byte(fmt.Sprint(tags.Year)), 4)
 	if err != nil {
 		return fmt.Errorf("could not write to dst: %s", err)
 	}
 
 	// Comment
-	err = writeToExtend(dst, []byte(tags.Comment), 28)
+	err = writeToExtent(dst, []byte(tags.Comment), 28)
 	if err != nil {
 		return fmt.Errorf("could not write to dst: %s", err)
 	}
@@ -168,7 +168,7 @@ func WriteID3v11Tags(dst io.WriteSeeker, tags ID3v11Tags) error {
 	genrebyte := make([]byte, 1)
 	binary.PutVarint(genrebyte, int64(genreCode))
 
-	err = writeToExtend(dst, genrebyte, 1)
+	err = writeToExtent(dst, genrebyte, 1)
 	if err != nil {
 		return fmt.Errorf("could not write to dst: %s", err)
 	}

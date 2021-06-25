@@ -38,7 +38,7 @@ func readToString(rs io.Reader, n int) (string, error) {
 }
 
 // Writes data to wr, if len(data) is less than lenNeeded - adds null bytes until written lenNeeded bytes
-func writeToExtend(wr io.Writer, data []byte, lenNeeded int) error {
+func writeToExtent(wr io.Writer, data []byte, lenNeeded int) error {
 	if len(data) > lenNeeded {
 		return fmt.Errorf("length of given data bytes is bigger than length needed")
 	}

@@ -102,31 +102,31 @@ func WriteID3v1Tags(dst io.WriteSeeker, tags ID3v1Tags) error {
 	}
 
 	// Song name
-	err = writeToExtend(dst, []byte(tags.SongName), 30)
+	err = writeToExtent(dst, []byte(tags.SongName), 30)
 	if err != nil {
 		return err
 	}
 
 	// Artist
-	err = writeToExtend(dst, []byte(tags.Artist), 30)
+	err = writeToExtent(dst, []byte(tags.Artist), 30)
 	if err != nil {
 		return err
 	}
 
 	// Album
-	err = writeToExtend(dst, []byte(tags.Album), 30)
+	err = writeToExtent(dst, []byte(tags.Album), 30)
 	if err != nil {
 		return err
 	}
 
 	// Year
-	err = writeToExtend(dst, []byte(fmt.Sprint(tags.Year)), 4)
+	err = writeToExtent(dst, []byte(fmt.Sprint(tags.Year)), 4)
 	if err != nil {
 		return err
 	}
 
 	// Comment
-	err = writeToExtend(dst, []byte(tags.Comment), 30)
+	err = writeToExtent(dst, []byte(tags.Comment), 30)
 	if err != nil {
 		return err
 	}
