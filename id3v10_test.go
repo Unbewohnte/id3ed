@@ -5,8 +5,17 @@ import (
 	"testing"
 )
 
+var TESTv1TAGS = &ID3v1Tags{
+	SongName: "testsong",
+	Artist:   "testartist",
+	Album:    "testalbum",
+	Year:     727,
+	Comment:  "testcomment",
+	Genre:    "Blues",
+}
+
 func TestGetID3v1Tags(t *testing.T) {
-	testfile, err := os.Open("./testData/testread.mp3")
+	testfile, err := os.Open("./testData/testreadv1.mp3")
 	if err != nil {
 		t.Errorf("could not open file for testing: %s", err)
 	}
@@ -21,22 +30,15 @@ func TestGetID3v1Tags(t *testing.T) {
 }
 
 func TestWriteID3v1Tags(t *testing.T) {
-	os.Remove("./testData/testwrite.mp3")
+	os.Remove("./testData/testwritev1.mp3")
 
-	f, err := os.Create("./testData/testwrite.mp3")
+	f, err := os.Create("./testData/testwritev1.mp3")
 	if err != nil {
 		t.Errorf("%s", err)
 	}
 	defer f.Close()
 
-	tags := ID3v1Tags{
-		SongName: "testsong",
-		Artist:   "testartist",
-		Album:    "testalbum",
-		Year:     727,
-		Comment:  "testcomment",
-		Genre:    "Blues",
-	}
+	tags := TESTv1TAGS
 
 	err = WriteID3v1Tags(f, tags)
 	if err != nil {
@@ -55,4 +57,19 @@ func TestWriteID3v1Tags(t *testing.T) {
 	if readTags.Year != 727 {
 		t.Errorf("WriteID3v1Tags failed: expected %d; got %d", 727, readTags.Year)
 	}
+}
+
+func TestWriteID3v1ToFile(t *testing.T) {
+	f, err := os.Open("./testData/testwritev1.mp3")
+	if err != nil {
+		t.Errorf("%s", err)
+	}
+
+	tags := TESTv1TAGS
+
+	err = WriteID3v1ToFile(f, tags)
+	if err != nil {
+		t.Errorf("WriteID3v1ToFile failed: %s", err)
+	}
+
 }

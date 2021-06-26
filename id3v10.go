@@ -5,6 +5,7 @@ import (
 	"encoding/binary"
 	"fmt"
 	"io"
+	"os"
 	"strconv"
 )
 
@@ -91,8 +92,8 @@ func GetID3v1Tags(rs io.ReadSeeker) (*ID3v1Tags, error) {
 	}, nil
 }
 
-// Writes given ID3v1.0 tags to dst
-func WriteID3v1Tags(dst io.WriteSeeker, tags ID3v1Tags) error {
+// Writes given ID3v1.0 tags to given io.ReadWriteSeeker.
+func WriteID3v1Tags(dst io.WriteSeeker, tags *ID3v1Tags) error {
 	dst.Seek(0, io.SeekEnd)
 
 	// TAG
@@ -146,4 +147,46 @@ func WriteID3v1Tags(dst io.WriteSeeker, tags ID3v1Tags) error {
 	}
 
 	return nil
+}
+
+// Checks for existing ID3v1 tag in file, if present - removes it and replaces with provided tags
+func WriteID3v1ToFile(f *os.File, tags *ID3v1Tags) error {
+	defer f.Close()
+
+	// check for existing ID3v1 tag
+	f.Seek(-int64(ID3V1SIZE), io.SeekEnd)
+
+	tag, err := read(f, 3)
+	if err != nil {
+		return err
+	}
+
+	if !bytes.Equal(tag, []byte("TAG")) {
+		// no existing tag, just write given tags
+		err = WriteID3v1Tags(f, tags)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+
+	// does contain ID3v1 tag. Removing it
+	fStats, err := f.Stat()
+	if err != nil {
+		return err
+	}
+
+	err = f.Truncate(fStats.Size() - int64(ID3V1SIZE))
+	if err != nil {
+		return nil
+	}
+
+	// writing new tags
+	err = WriteID3v1Tags(f, tags)
+	if err != nil {
+		return err
+	}
+
+	return nil
+
 }

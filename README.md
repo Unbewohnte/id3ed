@@ -1,11 +1,19 @@
 # ID3ED (ID3 - Encoder - Decoder)
 ## Library for encoding/decoding ID3 tags
 
+---
+
+# Under construction !
+
+---
+
 # Installation 
 
 ```
 go get github.com/Unbewohnte/id3ed
 ```
+
+---
 
 # Usage
 
@@ -33,10 +41,8 @@ func main() {
     // print all tags
     fmt.Printf("%+v",mp3tags)
 
-    // get a certain tag from "getter" function
-    songname := mp3tags.GetSongName()
-    
-    // get a certain tag from struct field
+    songname := mp3tags.SongName
+
     genre := mp3tags.Genre
 
     // etc.
@@ -52,7 +58,7 @@ func main() {
 	defer f.Close()
 
     // create your tags struct
-	tags := ID3v11Tags{
+	tags := &ID3v11Tags{
 		SongName: "mysong",
 		Artist:   "me",
 		Album:    "my album",
@@ -62,12 +68,14 @@ func main() {
 		Genre:    "Christian Gangsta Rap", // list of genres see "id3v1genres.go"
 	}
 
-    // write given tags in file
-	err = WriteID3v11Tags(f, tags)
+    // write given tags to file
+	err = WriteID3v11ToFile(f, tags)
 	if err != nil {
 		panic(err)
 	}
 ```
+
+---
 
 # Testing
 
@@ -80,5 +88,4 @@ go test -v
 ```
 to get a verbose output
 
-# Under construction !
-## Bugs are a possibility rn in this state, the package is still not tested properly 
+---
