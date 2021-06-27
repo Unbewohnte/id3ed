@@ -40,7 +40,7 @@ func TestWriteID3v1Tags(t *testing.T) {
 
 	tags := TESTv1TAGS
 
-	err = WriteID3v1Tags(f, tags)
+	err = tags.Write(f)
 	if err != nil {
 		t.Errorf("WriteID3v1Tags failed: %s", err)
 	}
@@ -67,7 +67,7 @@ func TestWriteID3v1ToFile(t *testing.T) {
 
 	tags := TESTv1TAGS
 
-	err = WriteID3v1ToFile(f, tags)
+	err = tags.WriteToFile(f)
 	if err != nil {
 		t.Errorf("WriteID3v1ToFile failed: %s", err)
 	}
