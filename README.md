@@ -68,8 +68,8 @@ func main() {
 		Genre:    "Christian Gangsta Rap", // list of genres see "id3v1genres.go"
 	}
 
-    // write given tags to file
-	err = WriteID3v11ToFile(f, tags)
+    // write tags to file
+	err = tags.WriteToFile(f)
 	if err != nil {
 		panic(err)
 	}
@@ -89,3 +89,7 @@ go test -v
 to get a verbose output
 
 ---
+
+# License
+
+[MIT LICENSE](https://github.com/Unbewohnte/id3ed/blob/main/LICENSE)
