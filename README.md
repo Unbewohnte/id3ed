@@ -59,13 +59,13 @@ func main() {
 
     // create your tags struct
 	tags := &ID3v11Tags{
-		SongName: "mysong",
-		Artist:   "me",
-		Album:    "my album",
-		Year:     2021,
-		Comment:  "Cool song",
+        SongName: "mysong",
+        Artist:   "me",
+        Album:    "my album",
+        Year:     2021,
+        Comment:  "Cool song",
         Track:    1,
-		Genre:    "Christian Gangsta Rap", // list of genres see "id3v1genres.go"
+        Genre:    "Christian Gangsta Rap", // list of genres see "id3v1genres.go"
 	}
 
     // write tags to file
