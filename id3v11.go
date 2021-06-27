@@ -22,7 +22,7 @@ type ID3v11Tags struct {
 // Retrieves ID3v1.1 field values of provided io.ReadSeeker
 func GetID3v11Tags(rs io.ReadSeeker) (*ID3v11Tags, error) {
 	// set reader to the last 128 bytes
-	_, err := rs.Seek(-int64(ID3V1SIZE), io.SeekEnd)
+	_, err := rs.Seek(-int64(ID3v1SIZE), io.SeekEnd)
 	if err != nil {
 		return nil, fmt.Errorf("could not seek: %s", err)
 	}
@@ -164,7 +164,7 @@ func (tags *ID3v11Tags) Write(dst io.WriteSeeker) error {
 	genreCode := getKey(id3v1genres, tags.Genre)
 	if genreCode == -1 {
 		// if no genre found - encode genre code as 255
-		genreCode = 255
+		genreCode = ID3v1INVALIDGENRE
 	}
 	genrebyte := make([]byte, 1)
 	binary.PutVarint(genrebyte, int64(genreCode))
@@ -182,7 +182,7 @@ func (tags *ID3v11Tags) WriteToFile(f *os.File) error {
 	defer f.Close()
 
 	// check for existing ID3v1.1 tag
-	f.Seek(-int64(ID3V1SIZE), io.SeekEnd)
+	f.Seek(-int64(ID3v1SIZE), io.SeekEnd)
 
 	tag, err := read(f, 3)
 	if err != nil {
@@ -204,7 +204,7 @@ func (tags *ID3v11Tags) WriteToFile(f *os.File) error {
 		return err
 	}
 
-	err = f.Truncate(fStats.Size() - int64(ID3V1SIZE))
+	err = f.Truncate(fStats.Size() - int64(ID3v1SIZE))
 	if err != nil {
 		return nil
 	}

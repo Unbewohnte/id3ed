@@ -11,8 +11,6 @@ import (
 
 // https://id3.org/ID3v1 - documentation
 
-const ID3V1SIZE int = 128
-
 type ID3v1Tags struct {
 	SongName string
 	Artist   string
@@ -25,7 +23,7 @@ type ID3v1Tags struct {
 // Retrieves ID3v1 field values of provided io.ReadSeeker (usually a file)
 func GetID3v1Tags(rs io.ReadSeeker) (*ID3v1Tags, error) {
 	// set reader to the last 128 bytes
-	_, err := rs.Seek(-int64(ID3V1SIZE), io.SeekEnd)
+	_, err := rs.Seek(-int64(ID3v1SIZE), io.SeekEnd)
 	if err != nil {
 		return nil, fmt.Errorf("could not seek: %s", err)
 	}
@@ -35,7 +33,7 @@ func GetID3v1Tags(rs io.ReadSeeker) (*ID3v1Tags, error) {
 		return nil, err
 	}
 
-	if !bytes.Equal(tag, []byte("TAG")) {
+	if !bytes.Equal(tag, []byte(ID3v1IDENTIFIER)) {
 		// no TAG, given file does not use ID3v1
 		return nil, fmt.Errorf("does not use ID3v1: expected %s; got %s", "TAG", tag)
 	}
@@ -97,7 +95,7 @@ func (tags *ID3v1Tags) Write(dst io.WriteSeeker) error {
 	dst.Seek(0, io.SeekEnd)
 
 	// TAG
-	_, err := dst.Write([]byte("TAG"))
+	_, err := dst.Write([]byte(ID3v1IDENTIFIER))
 	if err != nil {
 		return err
 	}
@@ -136,7 +134,7 @@ func (tags *ID3v1Tags) Write(dst io.WriteSeeker) error {
 	genreCode := getKey(id3v1genres, tags.Genre)
 	if genreCode == -1 {
 		// if no genre found - encode genre code as 255
-		genreCode = 255
+		genreCode = ID3v1INVALIDGENRE
 	}
 	genrebyte := make([]byte, 1)
 	binary.PutVarint(genrebyte, int64(genreCode))
@@ -154,14 +152,14 @@ func (tags *ID3v1Tags) WriteToFile(f *os.File) error {
 	defer f.Close()
 
 	// check for existing ID3v1 tag
-	f.Seek(-int64(ID3V1SIZE), io.SeekEnd)
+	f.Seek(-int64(ID3v1SIZE), io.SeekEnd)
 
 	tag, err := read(f, 3)
 	if err != nil {
 		return err
 	}
 
-	if !bytes.Equal(tag, []byte("TAG")) {
+	if !bytes.Equal(tag, []byte(ID3v1IDENTIFIER)) {
 		// no existing tag, just write given tags
 		err = tags.Write(f)
 		if err != nil {
@@ -176,7 +174,7 @@ func (tags *ID3v1Tags) WriteToFile(f *os.File) error {
 		return err
 	}
 
-	err = f.Truncate(fStats.Size() - int64(ID3V1SIZE))
+	err = f.Truncate(fStats.Size() - int64(ID3v1SIZE))
 	if err != nil {
 		return nil
 	}
