@@ -36,10 +36,9 @@ func TestGetID3v11Tags(t *testing.T) {
 	}
 }
 
+// WILL ADD NEW "TAG" WITHOUT REMOVING THE OLD ONE !!!
 func TestWriteID3v11Tags(t *testing.T) {
-	os.Remove("./testData/testwritev1.mp3")
-
-	f, err := os.Create("./testData/testwritev1.mp3")
+	f, err := os.OpenFile("./testData/testwritev1.mp3", os.O_CREATE|os.O_RDWR, os.ModePerm)
 	if err != nil {
 		t.Errorf("%s", err)
 	}
@@ -71,7 +70,7 @@ func TestWriteID3v11Tags(t *testing.T) {
 }
 
 func TestWriteID3v11ToFile(t *testing.T) {
-	f, err := os.Open("./testData/testwritev1.mp3")
+	f, err := os.OpenFile("./testData/testwritev1.mp3", os.O_CREATE|os.O_RDWR, os.ModePerm)
 	if err != nil {
 		t.Errorf("%s", err)
 	}

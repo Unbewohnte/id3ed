@@ -15,7 +15,7 @@ var TESTv1TAGS = &ID3v1Tags{
 }
 
 func TestGetID3v1Tags(t *testing.T) {
-	testfile, err := os.Open("./testData/testreadv1.mp3")
+	testfile, err := os.OpenFile("./testData/testreadv1.mp3", os.O_CREATE|os.O_RDONLY, os.ModePerm)
 	if err != nil {
 		t.Errorf("could not open file for testing: %s", err)
 	}
@@ -30,9 +30,7 @@ func TestGetID3v1Tags(t *testing.T) {
 }
 
 func TestWriteID3v1Tags(t *testing.T) {
-	os.Remove("./testData/testwritev1.mp3")
-
-	f, err := os.Create("./testData/testwritev1.mp3")
+	f, err := os.OpenFile("./testData/testwritev1.mp3", os.O_CREATE|os.O_RDWR, os.ModePerm)
 	if err != nil {
 		t.Errorf("%s", err)
 	}
@@ -40,11 +38,13 @@ func TestWriteID3v1Tags(t *testing.T) {
 
 	tags := TESTv1TAGS
 
+	// writing tags
 	err = tags.Write(f)
 	if err != nil {
 		t.Errorf("WriteID3v1Tags failed: %s", err)
 	}
 
+	// reading tags
 	readTags, err := GetID3v1Tags(f)
 	if err != nil {
 		t.Errorf("%s", err)
@@ -60,7 +60,7 @@ func TestWriteID3v1Tags(t *testing.T) {
 }
 
 func TestWriteID3v1ToFile(t *testing.T) {
-	f, err := os.Open("./testData/testwritev1.mp3")
+	f, err := os.OpenFile("./testData/testwritev1.mp3", os.O_CREATE|os.O_RDWR, os.ModePerm)
 	if err != nil {
 		t.Errorf("%s", err)
 	}

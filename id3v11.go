@@ -107,6 +107,8 @@ func GetID3v11Tags(rs io.ReadSeeker) (*ID3v11Tags, error) {
 }
 
 // Writes given ID3v1.1 tags to dst
+// NOTE: will not remove already existing ID3v1.1 tag if it`s present,
+// use ⁕WriteToFile⁕ method if you`re working with REAL mp3 files !!!
 func (tags *ID3v11Tags) Write(dst io.WriteSeeker) error {
 	dst.Seek(0, io.SeekEnd)
 
