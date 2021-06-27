@@ -35,7 +35,7 @@ func GetID3v1Tags(rs io.ReadSeeker) (*ID3v1Tags, error) {
 
 	if !bytes.Equal(tag, []byte(ID3v1IDENTIFIER)) {
 		// no TAG, given file does not use ID3v1
-		return nil, fmt.Errorf("does not use ID3v1: expected %s; got %s", "TAG", tag)
+		return nil, fmt.Errorf("does not use ID3v1: expected %s; got %s", ID3v1IDENTIFIER, tag)
 	}
 
 	songname, err := readToString(rs, 30)

@@ -32,9 +32,9 @@ func GetID3v11Tags(rs io.ReadSeeker) (*ID3v11Tags, error) {
 		return nil, err
 	}
 
-	if !bytes.Equal(tag, []byte("TAG")) {
+	if !bytes.Equal(tag, []byte(ID3v1IDENTIFIER)) {
 		// no TAG, given file does not use ID3v1
-		return nil, fmt.Errorf("does not use ID3v1: expected %s; got %s", "TAG", tag)
+		return nil, fmt.Errorf("does not use ID3v1: expected %s; got %s", ID3v1IDENTIFIER, tag)
 	}
 
 	songname, err := readToString(rs, 30)
@@ -111,7 +111,7 @@ func (tags *ID3v11Tags) Write(dst io.WriteSeeker) error {
 	dst.Seek(0, io.SeekEnd)
 
 	// TAG
-	_, err := dst.Write([]byte("TAG"))
+	_, err := dst.Write([]byte(ID3v1IDENTIFIER))
 	if err != nil {
 		return fmt.Errorf("could not write to dst: %s", err)
 	}
@@ -189,7 +189,7 @@ func (tags *ID3v11Tags) WriteToFile(f *os.File) error {
 		return err
 	}
 
-	if !bytes.Equal(tag, []byte("TAG")) {
+	if !bytes.Equal(tag, []byte(ID3v1IDENTIFIER)) {
 		// no existing tag, just write given tags
 		err = tags.Write(f)
 		if err != nil {
