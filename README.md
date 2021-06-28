@@ -2,10 +2,8 @@
 ## Library for encoding/decoding ID3 tags
 
 ---
-
-# //////////////////////////////////////
-# //(ᗜˬᗜ)~⭐//Under construction//(ᗜ‸ᗜ)//
-# //////////////////////////////////////
+  
+# ⚬Under construction !⚬  
 
 
 ---
