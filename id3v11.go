@@ -77,7 +77,7 @@ func GetID3v11Tags(rs io.ReadSeeker) (*ID3v11Tags, error) {
 		return nil, err
 	}
 
-	track, err := binary.ReadVarint(bytes.NewBuffer(trackByte))
+	track, err := bytesToInt(trackByte)
 	if err != nil {
 		return nil, err
 	}
@@ -86,7 +86,7 @@ func GetID3v11Tags(rs io.ReadSeeker) (*ID3v11Tags, error) {
 	if err != nil {
 		return nil, err
 	}
-	genreInt, err := binary.ReadVarint(bytes.NewBuffer(genreByte))
+	genreInt, err := bytesToInt(genreByte)
 	if err != nil {
 		return nil, err
 	}
@@ -218,5 +218,4 @@ func (tags *ID3v11Tags) WriteToFile(f *os.File) error {
 	}
 
 	return nil
-
 }

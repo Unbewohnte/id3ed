@@ -2,6 +2,7 @@ package id3ed
 
 import (
 	"bytes"
+	"encoding/binary"
 	"fmt"
 	"io"
 )
@@ -75,4 +76,15 @@ func getKey(mp map[int]string, givenValue string) int {
 		}
 	}
 	return -1
+}
+
+// Decodes given integer bytes into integer
+func bytesToInt(gBytes []byte) (int64, error) {
+	buff := bytes.NewBuffer(gBytes)
+	integer, err := binary.ReadVarint(buff)
+	if err != nil {
+		return 0, err
+	}
+	buff = nil
+	return integer, nil
 }

@@ -71,7 +71,7 @@ func GetID3v1Tags(rs io.ReadSeeker) (*ID3v1Tags, error) {
 	if err != nil {
 		return nil, err
 	}
-	genreInt, err := binary.ReadVarint(bytes.NewBuffer(genreByte))
+	genreInt, err := bytesToInt(genreByte)
 	if err != nil {
 		return nil, err
 	}
