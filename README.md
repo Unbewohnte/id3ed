@@ -1,24 +1,30 @@
-# ID3ED (ID3 - Encoder - Decoder)
-## Library for encoding/decoding ID3 tags
+# ∙ ID3ED (ID3 - Encoder - Decoder)
+## ⚬ Library for encoding/decoding ID3 tags
 
 ---
   
-# ⚬Under construction !⚬  
+# Under construction !
 
 
 ---
 
-# Installation 
+# ∙ Installation 
 
+To download package source:
 ```
 go get github.com/Unbewohnte/id3ed
 ```
 
+To compile package:
+```
+go install github.com/Unbewohnte/id3ed
+```
+
 ---
 
-# Usage
+# ∙ Usage
 
-## Decoding ID3v1.1
+## ⚬ Decoding ID3v1.1
 ```
 package main
 
@@ -34,7 +40,7 @@ func main() {
     }
 
     // extract ID3v1.1 tags 
-    mp3tags, err := GetID3v11Tags(mp3file)
+    mp3tags, err := id3ed.GetID3v11Tags(mp3file)
     if err != nil {
        panic(err)
     }
@@ -50,8 +56,16 @@ func main() {
 }
 ```
 
-## Encoding ID3v1.1
+## ⚬ Encoding ID3v1.1
 ```
+package main
+
+import(
+    "fmt"
+    "github.com/Unbewohnte/id3ed"
+)
+
+func main() {
 	f, err := os.OpenFile("/path/to/file/myfile.mp3",os.O_WRONLY, os.ModePerm)
 	if err != nil {
 		panic(err)
@@ -59,7 +73,7 @@ func main() {
 	defer f.Close()
 
     // create your tags struct
-	tags := &ID3v11Tags{
+	tags := &id3ed.ID3v11Tags{
             SongName: "mysong",
             Artist:   "me",
             Album:    "my album",
@@ -74,11 +88,12 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+}
 ```
 
 ---
 
-# Testing
+# ∙ Testing
 
 ```
 go test
@@ -91,6 +106,6 @@ to get a verbose output
 
 ---
 
-# License
+# ∙ License
 
 [MIT LICENSE](https://github.com/Unbewohnte/id3ed/blob/main/LICENSE)
