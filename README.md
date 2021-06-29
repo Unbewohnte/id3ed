@@ -62,7 +62,7 @@ package main
 
 import(
     "fmt"
-    "github.com/Unbewohnte/id3ed/v1"
+    id3v1 "github.com/Unbewohnte/id3ed/v1"
 )
 
 func main() {
