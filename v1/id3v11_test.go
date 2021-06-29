@@ -1,8 +1,9 @@
-package id3ed
+package v1
 
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"testing"
 )
 
@@ -17,7 +18,7 @@ var TESTV11TAGS = &ID3v11Tags{
 }
 
 func TestGetID3v11Tags(t *testing.T) {
-	testfile, err := os.Open("./testData/testreadv1.mp3")
+	testfile, err := os.Open(filepath.Join(TESTDATAPATH, "testreadv1.mp3"))
 	if err != nil {
 		t.Errorf("could not open file for testing: %s", err)
 	}
@@ -38,7 +39,7 @@ func TestGetID3v11Tags(t *testing.T) {
 
 // WILL ADD NEW "TAG" WITHOUT REMOVING THE OLD ONE !!!
 func TestWriteID3v11Tags(t *testing.T) {
-	f, err := os.OpenFile("./testData/testwritev1.mp3", os.O_CREATE|os.O_RDWR, os.ModePerm)
+	f, err := os.OpenFile(filepath.Join(TESTDATAPATH, "testwritev1.mp3"), os.O_CREATE|os.O_RDWR, os.ModePerm)
 	if err != nil {
 		t.Errorf("%s", err)
 	}
@@ -70,7 +71,7 @@ func TestWriteID3v11Tags(t *testing.T) {
 }
 
 func TestWriteID3v11ToFile(t *testing.T) {
-	f, err := os.OpenFile("./testData/testwritev1.mp3", os.O_CREATE|os.O_RDWR, os.ModePerm)
+	f, err := os.OpenFile(filepath.Join(TESTDATAPATH, "testwritev1.mp3"), os.O_CREATE|os.O_RDWR, os.ModePerm)
 	if err != nil {
 		t.Errorf("%s", err)
 	}

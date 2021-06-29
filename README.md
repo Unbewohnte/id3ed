@@ -30,7 +30,7 @@ package main
 
 import(
     "fmt"
-    "github.com/Unbewohnte/id3ed"
+    id3v1 "github.com/Unbewohnte/id3ed/v1"
 )
 
 func main() {
@@ -40,7 +40,7 @@ func main() {
     }
 
     // extract ID3v1.1 tags 
-    mp3tags, err := id3ed.GetID3v11Tags(mp3file)
+    mp3tags, err := id3v1.GetID3v11Tags(mp3file)
     if err != nil {
        panic(err)
     }
@@ -62,7 +62,7 @@ package main
 
 import(
     "fmt"
-    "github.com/Unbewohnte/id3ed"
+    "github.com/Unbewohnte/id3ed/v1"
 )
 
 func main() {
@@ -73,7 +73,7 @@ func main() {
 	defer f.Close()
 
     // create your tags struct
-	tags := &id3ed.ID3v11Tags{
+	tags := &id3v1.ID3v11Tags{
             SongName: "mysong",
             Artist:   "me",
             Album:    "my album",
@@ -95,14 +95,22 @@ func main() {
 
 # ∙ Testing
 
+To test everything
 ```
-go test
+go test ./...
 ```
 or
 ```
-go test -v
+go test -v ./...
 ```
 to get a verbose output
+
+OR
+
+```
+go test ./package_name_here
+```
+to test a specific package
 
 ---
 

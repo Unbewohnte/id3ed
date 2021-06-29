@@ -1,9 +1,12 @@
-package id3ed
+package v1
 
 import (
 	"os"
+	"path/filepath"
 	"testing"
 )
+
+var TESTDATAPATH string = filepath.Join("..", "testData")
 
 var TESTv1TAGS = &ID3v1Tags{
 	SongName: "testsong",
@@ -15,7 +18,7 @@ var TESTv1TAGS = &ID3v1Tags{
 }
 
 func TestGetID3v1Tags(t *testing.T) {
-	testfile, err := os.OpenFile("./testData/testreadv1.mp3", os.O_CREATE|os.O_RDONLY, os.ModePerm)
+	testfile, err := os.OpenFile(filepath.Join(TESTDATAPATH, "testreadv1.mp3"), os.O_CREATE|os.O_RDONLY, os.ModePerm)
 	if err != nil {
 		t.Errorf("could not open file for testing: %s", err)
 	}
@@ -30,7 +33,7 @@ func TestGetID3v1Tags(t *testing.T) {
 }
 
 func TestWriteID3v1Tags(t *testing.T) {
-	f, err := os.OpenFile("./testData/testwritev1.mp3", os.O_CREATE|os.O_RDWR, os.ModePerm)
+	f, err := os.OpenFile(filepath.Join(TESTDATAPATH, "testwritev1.mp3"), os.O_CREATE|os.O_RDWR, os.ModePerm)
 	if err != nil {
 		t.Errorf("%s", err)
 	}
@@ -60,7 +63,7 @@ func TestWriteID3v1Tags(t *testing.T) {
 }
 
 func TestWriteID3v1ToFile(t *testing.T) {
-	f, err := os.OpenFile("./testData/testwritev1.mp3", os.O_CREATE|os.O_RDWR, os.ModePerm)
+	f, err := os.OpenFile(filepath.Join(TESTDATAPATH, "testwritev1.mp3"), os.O_CREATE|os.O_RDWR, os.ModePerm)
 	if err != nil {
 		t.Errorf("%s", err)
 	}

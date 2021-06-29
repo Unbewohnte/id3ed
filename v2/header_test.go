@@ -1,12 +1,15 @@
-package id3ed
+package v2
 
 import (
 	"os"
+	"path/filepath"
 	"testing"
 )
 
+var TESTDATAPATH string = filepath.Join("..", "testData")
+
 func TestGetHeader(t *testing.T) {
-	f, err := os.Open("./testData/testreadv2.mp3")
+	f, err := os.Open(filepath.Join(TESTDATAPATH, "testreadv2.mp3"))
 	if err != nil {
 		t.Errorf("%s", err)
 	}

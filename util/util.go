@@ -1,4 +1,4 @@
-package id3ed
+package util
 
 import (
 	"bytes"
@@ -8,7 +8,7 @@ import (
 )
 
 // Shortcut function to read n bytes from reader. Peeked from here: https://github.com/dhowden/tag/blob/master/util.go
-func read(rs io.Reader, n int) ([]byte, error) {
+func Read(rs io.Reader, n int) ([]byte, error) {
 	read := make([]byte, n)
 	_, err := rs.Read(read)
 	if err != nil {
@@ -20,7 +20,7 @@ func read(rs io.Reader, n int) ([]byte, error) {
 
 // Shortcut function to read n bytes and convert them into string.
 // If encountered zero-byte - converts to string only previously read bytes
-func readToString(rs io.Reader, n int) (string, error) {
+func ReadToString(rs io.Reader, n int) (string, error) {
 	read := make([]byte, n)
 	_, err := rs.Read(read)
 	if err != nil {
@@ -39,7 +39,7 @@ func readToString(rs io.Reader, n int) (string, error) {
 }
 
 // Writes data to wr, if len(data) is less than lenNeeded - adds null bytes until written lenNeeded bytes
-func writeToExtent(wr io.Writer, data []byte, lenNeeded int) error {
+func WriteToExtent(wr io.Writer, data []byte, lenNeeded int) error {
 	if len(data) > lenNeeded {
 		return fmt.Errorf("length of given data bytes is bigger than length needed")
 	}
@@ -69,7 +69,7 @@ func writeToExtent(wr io.Writer, data []byte, lenNeeded int) error {
 
 // Returns found key (int) in provided map by value (string);
 // If key does not exist in map - returns -1
-func getKey(mp map[int]string, givenValue string) int {
+func GetKey(mp map[int]string, givenValue string) int {
 	for key, value := range mp {
 		if value == givenValue {
 			return key
@@ -79,7 +79,7 @@ func getKey(mp map[int]string, givenValue string) int {
 }
 
 // Decodes given integer bytes into integer
-func bytesToInt(gBytes []byte) (int64, error) {
+func BytesToInt(gBytes []byte) (int64, error) {
 	buff := bytes.NewBuffer(gBytes)
 	integer, err := binary.ReadVarint(buff)
 	if err != nil {

@@ -1,4 +1,4 @@
-package id3ed
+package v1
 
 import (
 	"bytes"
@@ -7,6 +7,8 @@ import (
 	"io"
 	"os"
 	"strconv"
+
+	"github.com/Unbewohnte/id3ed/util"
 )
 
 // https://id3.org/ID3v1 - documentation
@@ -28,7 +30,7 @@ func GetID3v1Tags(rs io.ReadSeeker) (*ID3v1Tags, error) {
 		return nil, fmt.Errorf("could not seek: %s", err)
 	}
 
-	tag, err := read(rs, 3)
+	tag, err := util.Read(rs, 3)
 	if err != nil {
 		return nil, err
 	}
@@ -38,22 +40,22 @@ func GetID3v1Tags(rs io.ReadSeeker) (*ID3v1Tags, error) {
 		return nil, fmt.Errorf("does not use ID3v1: expected %s; got %s", ID3v1IDENTIFIER, tag)
 	}
 
-	songname, err := readToString(rs, 30)
+	songname, err := util.ReadToString(rs, 30)
 	if err != nil {
 		return nil, err
 	}
 
-	artist, err := readToString(rs, 30)
+	artist, err := util.ReadToString(rs, 30)
 	if err != nil {
 		return nil, err
 	}
 
-	album, err := readToString(rs, 30)
+	album, err := util.ReadToString(rs, 30)
 	if err != nil {
 		return nil, err
 	}
 
-	yearStr, err := readToString(rs, 4)
+	yearStr, err := util.ReadToString(rs, 4)
 	if err != nil {
 		return nil, err
 	}
@@ -62,16 +64,16 @@ func GetID3v1Tags(rs io.ReadSeeker) (*ID3v1Tags, error) {
 		return nil, fmt.Errorf("could not convert yearbytes into int: %s", err)
 	}
 
-	comment, err := readToString(rs, 30)
+	comment, err := util.ReadToString(rs, 30)
 	if err != nil {
 		return nil, err
 	}
 
-	genreByte, err := read(rs, 1)
+	genreByte, err := util.Read(rs, 1)
 	if err != nil {
 		return nil, err
 	}
-	genreInt, err := bytesToInt(genreByte)
+	genreInt, err := util.BytesToInt(genreByte)
 	if err != nil {
 		return nil, err
 	}
@@ -103,37 +105,37 @@ func (tags *ID3v1Tags) Write(dst io.WriteSeeker) error {
 	}
 
 	// Song name
-	err = writeToExtent(dst, []byte(tags.SongName), 30)
+	err = util.WriteToExtent(dst, []byte(tags.SongName), 30)
 	if err != nil {
 		return err
 	}
 
 	// Artist
-	err = writeToExtent(dst, []byte(tags.Artist), 30)
+	err = util.WriteToExtent(dst, []byte(tags.Artist), 30)
 	if err != nil {
 		return err
 	}
 
 	// Album
-	err = writeToExtent(dst, []byte(tags.Album), 30)
+	err = util.WriteToExtent(dst, []byte(tags.Album), 30)
 	if err != nil {
 		return err
 	}
 
 	// Year
-	err = writeToExtent(dst, []byte(fmt.Sprint(tags.Year)), 4)
+	err = util.WriteToExtent(dst, []byte(fmt.Sprint(tags.Year)), 4)
 	if err != nil {
 		return err
 	}
 
 	// Comment
-	err = writeToExtent(dst, []byte(tags.Comment), 30)
+	err = util.WriteToExtent(dst, []byte(tags.Comment), 30)
 	if err != nil {
 		return err
 	}
 
 	// Genre
-	genreCode := getKey(id3v1genres, tags.Genre)
+	genreCode := util.GetKey(id3v1genres, tags.Genre)
 	if genreCode == -1 {
 		// if no genre found - encode genre code as 255
 		genreCode = ID3v1INVALIDGENRE
@@ -156,7 +158,7 @@ func (tags *ID3v1Tags) WriteToFile(f *os.File) error {
 	// check for existing ID3v1 tag
 	f.Seek(-int64(ID3v1SIZE), io.SeekEnd)
 
-	tag, err := read(f, 3)
+	tag, err := util.Read(f, 3)
 	if err != nil {
 		return err
 	}

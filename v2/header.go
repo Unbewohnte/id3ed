@@ -1,4 +1,4 @@
-package id3ed
+package v2
 
 //////////////////////////////////////
 //(ᗜˬᗜ)~⭐//Under construction//(ᗜ‸ᗜ)//
@@ -9,6 +9,8 @@ import (
 	"fmt"
 	"io"
 	"strconv"
+
+	"github.com/Unbewohnte/id3ed/util"
 )
 
 // ID3v2.x header structure
@@ -17,7 +19,7 @@ type Header struct {
 	Version          string
 	Unsynchronisated bool
 	Compressed       bool
-	Size             int64
+	Size             int64 // size of the whole tag - 10 header bytes
 }
 
 // Reads and structuralises ID3v2 header
@@ -26,7 +28,7 @@ func GetHeader(rs io.ReadSeeker) (*Header, error) {
 
 	rs.Seek(0, io.SeekStart)
 
-	identifier, err := read(rs, 3)
+	identifier, err := util.Read(rs, 3)
 	if err != nil {
 		return nil, err
 	}
@@ -37,27 +39,27 @@ func GetHeader(rs io.ReadSeeker) (*Header, error) {
 	header.Identifier = string(identifier)
 
 	// version
-	majorVersionByte, err := read(rs, 1)
+	majorVersionByte, err := util.Read(rs, 1)
 	if err != nil {
 		return nil, err
 	}
-	revisionNumberByte, err := read(rs, 1)
+	revisionNumberByte, err := util.Read(rs, 1)
 	if err != nil {
 		return nil, err
 	}
 
-	majorVersion, err := bytesToInt(majorVersionByte)
+	majorVersion, err := util.BytesToInt(majorVersionByte)
 	if err != nil {
 		return nil, err
 	}
-	revisionNumber, err := bytesToInt(revisionNumberByte)
+	revisionNumber, err := util.BytesToInt(revisionNumberByte)
 	if err != nil {
 		return nil, err
 	}
 	header.Version = fmt.Sprintf("%d%d", -majorVersion, revisionNumber)
 
 	// flags
-	flags, err := read(rs, 1)
+	flags, err := util.Read(rs, 1)
 	if err != nil {
 		return nil, err
 	}
@@ -74,7 +76,7 @@ func GetHeader(rs io.ReadSeeker) (*Header, error) {
 	}
 
 	// size
-	sizeBytes, err := read(rs, 4)
+	sizeBytes, err := util.Read(rs, 4)
 	if err != nil {
 		return nil, err
 	}

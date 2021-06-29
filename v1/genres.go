@@ -1,4 +1,4 @@
-package id3ed
+package v1
 
 // https://en.wikipedia.org/wiki/List_of_ID3v1_Genres
 
