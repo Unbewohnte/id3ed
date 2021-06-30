@@ -40,7 +40,7 @@ func main() {
     }
 
     // extract ID3v1.1 tags 
-    mp3tags, err := id3v1.GetID3v11Tags(mp3file)
+    mp3tags, err := id3v1.Getv11Tags(mp3file)
     if err != nil {
        panic(err)
     }
@@ -80,7 +80,7 @@ func main() {
             Year:     2021,
             Comment:  "Cool song",
             Track:    1,
-            Genre:    "Christian Gangsta Rap", // list of genres see "id3v1genres.go"
+            Genre:    "Christian Gangsta Rap", // for list of genres see: "./v1/genres.go"
 	}
 
     // write tags to file

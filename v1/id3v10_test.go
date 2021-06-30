@@ -17,12 +17,12 @@ var TESTv1TAGS = &ID3v1Tags{
 	Genre:    "Blues",
 }
 
-func TestGetID3v1Tags(t *testing.T) {
+func TestGetv1Tags(t *testing.T) {
 	testfile, err := os.OpenFile(filepath.Join(TESTDATAPATH, "testreadv1.mp3"), os.O_CREATE|os.O_RDONLY, os.ModePerm)
 	if err != nil {
 		t.Errorf("could not open file for testing: %s", err)
 	}
-	tags, err := GetID3v1Tags(testfile)
+	tags, err := Getv1Tags(testfile)
 	if err != nil {
 		t.Errorf("GetID3v1Tags failed: %s", err)
 	}
@@ -32,7 +32,7 @@ func TestGetID3v1Tags(t *testing.T) {
 	}
 }
 
-func TestWriteID3v1Tags(t *testing.T) {
+func TestWritev1Tags(t *testing.T) {
 	f, err := os.OpenFile(filepath.Join(TESTDATAPATH, "testwritev1.mp3"), os.O_CREATE|os.O_RDWR, os.ModePerm)
 	if err != nil {
 		t.Errorf("%s", err)
@@ -48,7 +48,7 @@ func TestWriteID3v1Tags(t *testing.T) {
 	}
 
 	// reading tags
-	readTags, err := GetID3v1Tags(f)
+	readTags, err := Getv1Tags(f)
 	if err != nil {
 		t.Errorf("%s", err)
 	}

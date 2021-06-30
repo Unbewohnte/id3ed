@@ -1,9 +1,5 @@
 package v2
 
-//////////////////////////////////////
-//(ᗜˬᗜ)~⭐//Under construction//(ᗜ‸ᗜ)//
-//////////////////////////////////////
-
 import (
 	"bytes"
 	"fmt"
@@ -33,7 +29,7 @@ func GetHeader(rs io.ReadSeeker) (*Header, error) {
 		return nil, err
 	}
 	// check if ID3v2 is used
-	if !bytes.Equal([]byte(ID3v2IDENTIFIER), identifier) {
+	if !bytes.Equal([]byte(HEADERIDENTIFIER), identifier) {
 		return nil, fmt.Errorf("no ID3v2 identifier found")
 	}
 	header.Identifier = string(identifier)

@@ -23,7 +23,7 @@ type ID3v1Tags struct {
 }
 
 // Retrieves ID3v1 field values of provided io.ReadSeeker (usually a file)
-func GetID3v1Tags(rs io.ReadSeeker) (*ID3v1Tags, error) {
+func Getv1Tags(rs io.ReadSeeker) (*ID3v1Tags, error) {
 	// set reader to the last 128 bytes
 	_, err := rs.Seek(-int64(ID3v1SIZE), io.SeekEnd)
 	if err != nil {

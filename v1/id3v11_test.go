@@ -22,7 +22,7 @@ func TestGetID3v11Tags(t *testing.T) {
 	if err != nil {
 		t.Errorf("could not open file for testing: %s", err)
 	}
-	mp3tags, err := GetID3v11Tags(testfile)
+	mp3tags, err := Getv11Tags(testfile)
 	if err != nil {
 		t.Errorf("GetID3v11Tags failed: %s", err)
 	}
@@ -52,7 +52,7 @@ func TestWriteID3v11Tags(t *testing.T) {
 		t.Errorf("WriteID3v1Tags failed: %s", err)
 	}
 
-	readTags, err := GetID3v11Tags(f)
+	readTags, err := Getv11Tags(f)
 	if err != nil {
 		t.Errorf("%s", err)
 	}
