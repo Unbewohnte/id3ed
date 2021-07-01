@@ -75,7 +75,7 @@ func Getv1Tags(rs io.ReadSeeker) (*ID3v1Tags, error) {
 	}
 	genreInt, err := util.BytesToInt(genreByte)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("cannot convert bytes to int: %s", err)
 	}
 	genre, exists := id3v1genres[int(genreInt)]
 	if !exists {
@@ -101,37 +101,37 @@ func (tags *ID3v1Tags) Write(dst io.WriteSeeker) error {
 	// TAG
 	_, err := dst.Write([]byte(ID3v1IDENTIFIER))
 	if err != nil {
-		return err
+		return fmt.Errorf("could not write to writer: %s", err)
 	}
 
 	// Song name
 	err = util.WriteToExtent(dst, []byte(tags.SongName), 30)
 	if err != nil {
-		return err
+		return fmt.Errorf("could not write to writer: %s", err)
 	}
 
 	// Artist
 	err = util.WriteToExtent(dst, []byte(tags.Artist), 30)
 	if err != nil {
-		return err
+		return fmt.Errorf("could not write to writer: %s", err)
 	}
 
 	// Album
 	err = util.WriteToExtent(dst, []byte(tags.Album), 30)
 	if err != nil {
-		return err
+		return fmt.Errorf("could not write to writer: %s", err)
 	}
 
 	// Year
 	err = util.WriteToExtent(dst, []byte(fmt.Sprint(tags.Year)), 4)
 	if err != nil {
-		return err
+		return fmt.Errorf("could not write to writer: %s", err)
 	}
 
 	// Comment
 	err = util.WriteToExtent(dst, []byte(tags.Comment), 30)
 	if err != nil {
-		return err
+		return fmt.Errorf("could not write to writer: %s", err)
 	}
 
 	// Genre
@@ -145,7 +145,7 @@ func (tags *ID3v1Tags) Write(dst io.WriteSeeker) error {
 
 	_, err = dst.Write(genrebyte)
 	if err != nil {
-		return err
+		return fmt.Errorf("could not write to writer: %s", err)
 	}
 
 	return nil
@@ -175,20 +175,24 @@ func (tags *ID3v1Tags) WriteToFile(f *os.File) error {
 	// does contain ID3v1 tag. Removing it
 	fStats, err := f.Stat()
 	if err != nil {
-		return err
+		return fmt.Errorf("cannot get file stats: %s", err)
 	}
 
 	err = f.Truncate(fStats.Size() - int64(ID3v1SIZE))
 	if err != nil {
-		return nil
+		return fmt.Errorf("could not truncate file %s", err)
 	}
 
 	// writing new tags
 	err = tags.Write(f)
 	if err != nil {
-		return err
+		return fmt.Errorf("could not write to writer: %s", err)
 	}
 
 	return nil
 
+}
+
+func (tags *ID3v1Tags) Version() int {
+	return 10
 }

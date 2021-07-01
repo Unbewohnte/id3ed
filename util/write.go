@@ -15,21 +15,24 @@ func WriteToExtent(wr io.Writer, data []byte, lenNeeded int) error {
 	buff := new(bytes.Buffer)
 	for i := 0; i < lenNeeded; i++ {
 		if i < len(data) {
+			// write given data
 			err := buff.WriteByte(data[i])
 			if err != nil {
-				return err
+				return fmt.Errorf("could not write byte: %s", err)
 			}
 		} else {
+			// write null bytes
 			err := buff.WriteByte(0)
 			if err != nil {
-				return err
+				return fmt.Errorf("could not write byte: %s", err)
 			}
 		}
 	}
 
+	// write constructed buffer`s bytes
 	_, err := wr.Write(buff.Bytes())
 	if err != nil {
-		return err
+		return fmt.Errorf("could not write to writer: %s", err)
 	}
 
 	return nil

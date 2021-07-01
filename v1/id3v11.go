@@ -81,7 +81,7 @@ func Getv11Tags(rs io.ReadSeeker) (*ID3v11Tags, error) {
 
 	track, err := util.BytesToInt(trackByte)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("cannot convert bytes to int: %s", err)
 	}
 
 	genreByte, err := util.Read(rs, 1)
@@ -90,7 +90,7 @@ func Getv11Tags(rs io.ReadSeeker) (*ID3v11Tags, error) {
 	}
 	genreInt, err := util.BytesToInt(genreByte)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("cannot convert bytes to int: %s", err)
 	}
 	genre, exists := id3v1genres[int(genreInt)]
 	if !exists {
@@ -185,18 +185,23 @@ func (tags *ID3v11Tags) WriteToFile(f *os.File) error {
 	defer f.Close()
 
 	// check for existing ID3v1.1 tag
-	f.Seek(-int64(ID3v1SIZE), io.SeekEnd)
+	_, err := f.Seek(-int64(ID3v1SIZE), io.SeekEnd)
+	if err != nil {
+		return fmt.Errorf("could not seek: %s", err)
+	}
 
 	tag, err := util.Read(f, 3)
 	if err != nil {
+		// return err
 		return err
+
 	}
 
 	if !bytes.Equal(tag, []byte(ID3v1IDENTIFIER)) {
 		// no existing tag, just write given tags
 		err = tags.Write(f)
 		if err != nil {
-			return err
+			return fmt.Errorf("could not write to writer: %s", err)
 		}
 		return nil
 	}
@@ -204,19 +209,23 @@ func (tags *ID3v11Tags) WriteToFile(f *os.File) error {
 	// does contain ID3v1.1 tag. Removing it
 	fStats, err := f.Stat()
 	if err != nil {
-		return err
+		return fmt.Errorf("cannot get file stats: %s", err)
 	}
 
 	err = f.Truncate(fStats.Size() - int64(ID3v1SIZE))
 	if err != nil {
-		return nil
+		return fmt.Errorf("could not truncate file %s", err)
 	}
 
 	// writing new tags
 	err = tags.Write(f)
 	if err != nil {
-		return err
+		return fmt.Errorf("could not write to writer: %s", err)
 	}
 
 	return nil
+}
+
+func (tags *ID3v11Tags) Version() int {
+	return 11
 }

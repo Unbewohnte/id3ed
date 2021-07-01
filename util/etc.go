@@ -3,6 +3,7 @@ package util
 import (
 	"bytes"
 	"encoding/binary"
+	"fmt"
 )
 
 // Returns found key (int) in provided map by value (string);
@@ -21,7 +22,7 @@ func BytesToInt(gBytes []byte) (int64, error) {
 	buff := bytes.NewBuffer(gBytes)
 	integer, err := binary.ReadVarint(buff)
 	if err != nil {
-		return 0, err
+		return 0, fmt.Errorf("could not decode integer: %s", err)
 	}
 	buff = nil
 	return integer, nil
