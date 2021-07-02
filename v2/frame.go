@@ -11,49 +11,58 @@ import (
 ////////////////////////////////////////////////////////////////////////////
 
 type FrameHeader struct {
-	Identifier string
-	FrameSize  int64
+	ID        string
+	FrameSize int64
+	Flags     int
 }
 
 type Frame struct {
-	Header   *FrameHeader
+	Header   FrameHeader
 	Contents string
 }
 
-// NOT TESTED !
-func Readv2Frame(rs io.Reader) (*Frame, error) {
-	var frameHeader *FrameHeader
+// NOT TESTED ! Reads v2.3 | v2.4 frame
+func ReadFrame(rs io.Reader) (*Frame, error) {
+	var frameHeader FrameHeader
 	var frame Frame
 
-	identifier, err := util.ReadToString(rs, 3)
+	identifier, err := util.ReadToString(rs, 4)
 	if err != nil {
 		return nil, err
 	}
-	frameHeader.Identifier = identifier
+	frameHeader.ID = identifier
 
-	framesizeBytes, err := util.Read(rs, 3)
+	framesizeBytes, err := util.Read(rs, 4)
 	if err != nil {
 		return nil, err
 	}
 
-	framesize, err := util.BytesToInt(framesizeBytes)
+	framesize, err := util.BytesToIntIgnoreFirstBit(framesizeBytes)
 	if err != nil {
 		return nil, err
 	}
 
 	frameHeader.FrameSize = framesize
 
-	frameContents, err := util.ReadToString(rs, int(framesize))
+	frameFlagsBytes, err := util.Read(rs, 2)
+	if err != nil {
+		return nil, err
+	}
+
+	// STILL NOT IMPLEMENTED FLAG HANDLING  !
+	frameFlags, err := util.BytesToInt(frameFlagsBytes)
+	if err != nil {
+		return nil, err
+	}
+	frameHeader.Flags = int(frameFlags)
+
+	frameContents, err := util.Read(rs, uint64(framesize))
 	if err != nil {
 		return nil, err
 	}
 
 	frame.Header = frameHeader
-	frame.Contents = frameContents
+	frame.Contents = string(frameContents)
 
 	return &frame, nil
 }
-
-// func ReadFrame(rs io.Reader, version string) error {
-// 	return nil
-// }

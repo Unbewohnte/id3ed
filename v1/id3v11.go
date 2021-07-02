@@ -39,22 +39,22 @@ func Getv11Tags(rs io.ReadSeeker) (*ID3v11Tags, error) {
 		return nil, fmt.Errorf("does not use ID3v1: expected %s; got %s", ID3v1IDENTIFIER, tag)
 	}
 
-	songname, err := util.ReadToString(rs, 30)
+	songname, err := util.ReadToStringIgnoreNullB(rs, 30)
 	if err != nil {
 		return nil, err
 	}
 
-	artist, err := util.ReadToString(rs, 30)
+	artist, err := util.ReadToStringIgnoreNullB(rs, 30)
 	if err != nil {
 		return nil, err
 	}
 
-	album, err := util.ReadToString(rs, 30)
+	album, err := util.ReadToStringIgnoreNullB(rs, 30)
 	if err != nil {
 		return nil, err
 	}
 
-	yearStr, err := util.ReadToString(rs, 4)
+	yearStr, err := util.ReadToStringIgnoreNullB(rs, 4)
 	if err != nil {
 		return nil, err
 	}
@@ -63,7 +63,7 @@ func Getv11Tags(rs io.ReadSeeker) (*ID3v11Tags, error) {
 		return nil, fmt.Errorf("could not convert yearbytes into int: %s", err)
 	}
 
-	comment, err := util.ReadToString(rs, 28)
+	comment, err := util.ReadToStringIgnoreNullB(rs, 28)
 	if err != nil {
 		return nil, err
 	}

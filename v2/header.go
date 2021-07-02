@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"strconv"
 
 	"github.com/Unbewohnte/id3ed/util"
 )
@@ -77,22 +76,12 @@ func GetHeader(rs io.ReadSeeker) (*Header, error) {
 		return nil, err
 	}
 
-	// represent each byte in size as binary and get rid from the first useless bit,
-	// then concatenate filtered parts
-	var filteredSizeStr string
-	for _, b := range sizeBytes {
-		// the first bit is always 0, so filter it out
-		filteredPart := fmt.Sprintf("%08b", b)[1:] // byte is 8 bits
-		filteredSizeStr += filteredPart
-	}
-
-	// converting filtered binary size into usable int64
-	size, err := strconv.ParseInt(filteredSizeStr, 2, 64)
+	size, err := util.BytesToIntIgnoreFirstBit(sizeBytes)
 	if err != nil {
 		return nil, err
 	}
 
-	header.Size = int64(size)
+	header.Size = size
 
 	return &header, nil
 }
