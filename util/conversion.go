@@ -5,18 +5,8 @@ import (
 	"encoding/binary"
 	"fmt"
 	"strconv"
+	"strings"
 )
-
-// Returns found key (int) in provided map by value (string);
-// If key does not exist in map - returns -1
-func GetKey(mp map[int]string, givenValue string) int {
-	for key, value := range mp {
-		if value == givenValue {
-			return key
-		}
-	}
-	return -1
-}
 
 // Decodes given integer bytes into integer
 func BytesToInt(gBytes []byte) (int64, error) {
@@ -48,4 +38,18 @@ func BytesToIntIgnoreFirstBit(gBytes []byte) (int64, error) {
 	}
 
 	return integer, nil
+}
+
+// Converts given bytes into string, ignoring the first 31 non-printable ASCII characters.
+// (LOSSY, if given bytes contain some nasty ones)
+func ToString(gBytes []byte) string {
+	var filteredBytes []byte
+	for _, b := range gBytes {
+		if b <= 31 {
+			continue
+		}
+		filteredBytes = append(filteredBytes, b)
+	}
+
+	return strings.ToValidUTF8(string(filteredBytes), "")
 }

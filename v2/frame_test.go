@@ -5,6 +5,8 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+
+	"github.com/Unbewohnte/id3ed/util"
 )
 
 func TestReadFrame(t *testing.T) {
@@ -21,7 +23,24 @@ func TestReadFrame(t *testing.T) {
 		t.Errorf("ReadFrame failed: %s", err)
 	}
 
-	if firstFrame.Header.ID != "TRCK" {
-		t.Errorf("ReadFrame failed: expected ID %s; got %s", "TRCK", firstFrame.Header.ID)
+	if firstFrame.ID != "TRCK" {
+		t.Errorf("ReadFrame failed: expected ID %s; got %s", "TRCK", firstFrame.ID)
+	}
+
+	if firstFrame.Flags.Encrypted != false {
+		t.Errorf("ReadFrame failed: expected compressed flag to be %v; got %v", false, firstFrame.Flags.Encrypted)
+	}
+
+	secondFrame, err := ReadFrame(f, 24)
+	if err != nil {
+		t.Errorf("ReadFrame failed: %s", err)
+	}
+
+	if secondFrame.ID != "TDRC" {
+		t.Errorf("ReadFrame failed: expected ID %s; got %s", "TDRC", secondFrame.ID)
+	}
+
+	if util.ToString(secondFrame.Contents) != "2006" {
+		t.Errorf("ReadFrame failed: expected contents to be %s; got %s", "2006", util.ToString(secondFrame.Contents))
 	}
 }
