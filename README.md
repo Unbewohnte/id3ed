@@ -5,6 +5,11 @@
   
 # Under construction !
 
+# Project status
+
+Right now it`s capable of reading and writing ID3v1 and ID3v1.1 tags.
+
+ID3v2.x support is still in making.
 
 ---
 
