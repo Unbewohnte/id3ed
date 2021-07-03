@@ -21,17 +21,19 @@ type Frame struct {
 	Contents string
 }
 
-// NOT TESTED ! Reads v2.3 | v2.4 frame
-func ReadFrame(rs io.Reader) (*Frame, error) {
+// Reads ID3v2.3.0 or ID3v2.4.0 frame
+func ReadFrame(rs io.Reader, version uint) (*Frame, error) {
 	var frameHeader FrameHeader
 	var frame Frame
 
+	// ID
 	identifier, err := util.ReadToString(rs, 4)
 	if err != nil {
 		return nil, err
 	}
 	frameHeader.ID = identifier
 
+	// Size
 	framesizeBytes, err := util.Read(rs, 4)
 	if err != nil {
 		return nil, err
@@ -44,18 +46,20 @@ func ReadFrame(rs io.Reader) (*Frame, error) {
 
 	frameHeader.FrameSize = framesize
 
+	// Flags
 	frameFlagsBytes, err := util.Read(rs, 2)
 	if err != nil {
 		return nil, err
 	}
 
-	// STILL NOT IMPLEMENTED FLAG HANDLING  !
 	frameFlags, err := util.BytesToInt(frameFlagsBytes)
 	if err != nil {
 		return nil, err
 	}
+
 	frameHeader.Flags = int(frameFlags)
 
+	// Body
 	frameContents, err := util.Read(rs, uint64(framesize))
 	if err != nil {
 		return nil, err

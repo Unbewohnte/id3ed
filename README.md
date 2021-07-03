@@ -12,12 +12,12 @@
 
 To download package source:
 ```
-go get github.com/Unbewohnte/id3ed
+go get github.com/Unbewohnte/id3ed/...
 ```
 
 To compile package:
 ```
-go install github.com/Unbewohnte/id3ed
+go install github.com/Unbewohnte/id3ed/...
 ```
 
 ---

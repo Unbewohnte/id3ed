@@ -23,12 +23,12 @@ func TestGetHeader(t *testing.T) {
 		t.Errorf("GetHeader failed: expected identifier %s; got %s", "ID3", header.Identifier)
 	}
 
-	if header.Compressed != false {
-		t.Errorf("GetHeader failed: expected flag %v; got %v", false, header.Compressed)
+	if header.Flags.HasExtendedHeader != false {
+		t.Errorf("GetHeader failed: expected flag %v; got %v", false, header.Flags.HasExtendedHeader)
 	}
 
-	if header.Unsynchronisated != false {
-		t.Errorf("GetHeader failed: expected flag %v; got %v", false, header.Unsynchronisated)
+	if header.Flags.Unsynchronisated != false {
+		t.Errorf("GetHeader failed: expected flag %v; got %v", false, header.Flags.Unsynchronisated)
 	}
 
 	if header.Size != 1138 {

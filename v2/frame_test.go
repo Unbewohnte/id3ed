@@ -16,7 +16,7 @@ func TestReadFrame(t *testing.T) {
 	// read right after header`s bytes
 	f.Seek(int64(HEADERSIZE), io.SeekStart)
 
-	firstFrame, err := ReadFrame(f)
+	firstFrame, err := ReadFrame(f, 24)
 	if err != nil {
 		t.Errorf("ReadFrame failed: %s", err)
 	}
