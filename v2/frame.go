@@ -25,7 +25,7 @@ type Frame struct {
 }
 
 // Reads ID3v2.3.0 or ID3v2.4.0 frame
-func ReadFrame(rs io.Reader, version uint) (*Frame, error) {
+func ReadFrame(rs io.Reader) (*Frame, error) {
 	var frame Frame
 
 	// ID

@@ -18,7 +18,7 @@ func TestReadFrame(t *testing.T) {
 	// read right after header`s bytes
 	f.Seek(int64(HEADERSIZE), io.SeekStart)
 
-	firstFrame, err := ReadFrame(f, 24)
+	firstFrame, err := ReadFrame(f)
 	if err != nil {
 		t.Errorf("ReadFrame failed: %s", err)
 	}
@@ -31,7 +31,7 @@ func TestReadFrame(t *testing.T) {
 		t.Errorf("ReadFrame failed: expected compressed flag to be %v; got %v", false, firstFrame.Flags.Encrypted)
 	}
 
-	secondFrame, err := ReadFrame(f, 24)
+	secondFrame, err := ReadFrame(f)
 	if err != nil {
 		t.Errorf("ReadFrame failed: %s", err)
 	}

@@ -21,8 +21,7 @@ type Header struct {
 	Identifier string
 	Flags      HeaderFlags
 	Version    uint
-
-	Size int64 // size of the whole tag - 10 header bytes
+	Size       int64 // size of the whole tag - 10 header bytes
 }
 
 // Reads and structuralises ID3v2.3.0 or ID3v2.4.0 header
