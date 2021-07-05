@@ -29,11 +29,11 @@ func TestGetID3v11Tags(t *testing.T) {
 
 	if mp3tags.Artist != "Artist" {
 		fmt.Printf("%v", mp3tags.Artist)
-		t.Errorf("GetID3v11Tags failed:  expected %s; got %s", "Artist", mp3tags.Artist)
+		t.Errorf("GetID3v11Tags failed:  expected artist %s; got %s", "Artist", mp3tags.Artist)
 	}
 
-	if mp3tags.Track != 4 {
-		t.Errorf("GetID3v11Tags failed: expected %d; got %d", 4, mp3tags.Track)
+	if mp3tags.Track != 8 {
+		t.Errorf("GetID3v11Tags failed: expected track %d; got %d", 8, mp3tags.Track)
 	}
 }
 
@@ -58,15 +58,15 @@ func TestWriteID3v11Tags(t *testing.T) {
 	}
 
 	if readTags.Album != "testalbum" {
-		t.Errorf("WriteID3v11Tags failed: expected %s; got %s", "testalbum", readTags.Album)
+		t.Errorf("WriteID3v11Tags failed: expected album %s; got %s", "testalbum", readTags.Album)
 	}
 
 	if readTags.Year != 727 {
-		t.Errorf("WriteID3v11Tags failed: expected %d; got %d", 727, readTags.Year)
+		t.Errorf("WriteID3v11Tags failed: expected year %d; got %d", 727, readTags.Year)
 	}
 
-	if readTags.Track != 5 {
-		t.Errorf("WriteID3v11Tags failed: expected %d; got %d", 5, readTags.Track)
+	if readTags.Track != 10 {
+		t.Errorf("WriteID3v11Tags failed: expected track %d; got %d", 10, readTags.Track)
 	}
 }
 

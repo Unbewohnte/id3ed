@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"strconv"
 
 	"github.com/Unbewohnte/id3ed/util"
 )
@@ -20,7 +19,7 @@ type HeaderFlags struct {
 type Header struct {
 	Identifier string
 	Flags      HeaderFlags
-	Version    uint
+	Version    string
 	Size       int64 // size of the whole tag - 10 header bytes
 }
 
@@ -41,29 +40,33 @@ func GetHeader(rs io.ReadSeeker) (*Header, error) {
 	header.Identifier = string(identifier)
 
 	// version
-	majorVersionByte, err := util.Read(rs, 1)
-	if err != nil {
-		return nil, err
-	}
-	revisionNumberByte, err := util.Read(rs, 1)
+	VersionBytes, err := util.Read(rs, 2)
 	if err != nil {
 		return nil, err
 	}
 
-	majorVersion, err := util.BytesToInt(majorVersionByte)
+	majorVersion, err := util.ByteToInt(VersionBytes[0])
 	if err != nil {
 		return nil, err
 	}
-	revisionNumber, err := util.BytesToInt(revisionNumberByte)
+	revisionNumber, err := util.ByteToInt(VersionBytes[1])
 	if err != nil {
 		return nil, err
 	}
 
-	version, err := strconv.Atoi(fmt.Sprintf("%d%d", majorVersion, revisionNumber))
-	if err != nil {
-		return nil, err
+	var version string
+	switch majorVersion {
+	case 2:
+		version = V2_2
+	case 3:
+		version = V2_3
+	case 4:
+		version = V2_4
+	default:
+		return nil, fmt.Errorf("ID3v2.%d.%d is not supported", majorVersion, revisionNumber)
 	}
-	header.Version = uint(version)
+
+	header.Version = version
 
 	// flags
 	flags, err := util.Read(rs, 1)
@@ -75,7 +78,7 @@ func GetHeader(rs io.ReadSeeker) (*Header, error) {
 
 	// v3.0 and v4.0 have different amount of flags
 	switch version {
-	case 30:
+	case V2_3:
 		if flagBits[0] == 1 {
 			header.Flags.Unsynchronisated = true
 		} else {
@@ -94,7 +97,7 @@ func GetHeader(rs io.ReadSeeker) (*Header, error) {
 		// always false, because ID3v2.3.0 does not support footers
 		header.Flags.FooterPresent = false
 
-	case 40:
+	case V2_4:
 		if flagBits[0] == 1 {
 			header.Flags.Unsynchronisated = true
 		} else {

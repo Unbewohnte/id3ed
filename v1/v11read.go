@@ -67,7 +67,7 @@ func Getv11Tags(rs io.ReadSeeker) (*ID3v11Tags, error) {
 		return nil, err
 	}
 
-	track, err := util.BytesToInt(trackByte)
+	track, err := util.ByteToInt(trackByte[0])
 	if err != nil {
 		return nil, fmt.Errorf("cannot convert bytes to int: %s", err)
 	}
@@ -76,7 +76,7 @@ func Getv11Tags(rs io.ReadSeeker) (*ID3v11Tags, error) {
 	if err != nil {
 		return nil, err
 	}
-	genreInt, err := util.BytesToInt(genreByte)
+	genreInt, err := util.ByteToInt(genreByte[0])
 	if err != nil {
 		return nil, fmt.Errorf("cannot convert bytes to int: %s", err)
 	}

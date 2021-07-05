@@ -60,7 +60,7 @@ func Getv1Tags(rs io.ReadSeeker) (*ID3v1Tags, error) {
 	if err != nil {
 		return nil, err
 	}
-	genreInt, err := util.BytesToInt(genreByte)
+	genreInt, err := util.ByteToInt(genreByte[0])
 	if err != nil {
 		return nil, fmt.Errorf("cannot convert bytes to int: %s", err)
 	}

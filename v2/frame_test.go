@@ -44,3 +44,16 @@ func TestReadFrame(t *testing.T) {
 		t.Errorf("ReadFrame failed: expected contents to be %s; got %s", "2006", util.ToString(secondFrame.Contents))
 	}
 }
+
+
+// func TestGetFrames(t *testing.T) {
+// 	f, err := os.Open(filepath.Join(TESTDATAPATH, "testreadv2.mp3"))
+// 	if err != nil {
+// 		t.Errorf("%s", err)
+// 	}
+
+// 	_, err = GetFrames(f)
+// 	if err != nil {
+// 		t.Errorf("GetFrames failed: %s", err)
+// 	}
+// }

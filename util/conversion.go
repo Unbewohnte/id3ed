@@ -1,21 +1,17 @@
 package util
 
 import (
-	"bytes"
-	"encoding/binary"
 	"fmt"
 	"strconv"
 	"strings"
 )
 
-// Decodes given integer bytes into integer
-func BytesToInt(gBytes []byte) (int64, error) {
-	buff := bytes.NewBuffer(gBytes)
-	integer, err := binary.ReadVarint(buff)
+// Decodes given byte into integer
+func ByteToInt(gByte byte) (int64, error) {
+	integer, err := strconv.ParseInt(fmt.Sprintf("%d", gByte), 10, 64)
 	if err != nil {
-		return 0, fmt.Errorf("could not decode integer: %s", err)
+		return 0, err
 	}
-	buff = nil
 	return integer, nil
 }
 

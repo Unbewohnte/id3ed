@@ -119,6 +119,40 @@ func ReadFrame(rs io.Reader) (*Frame, error) {
 	return &frame, nil
 }
 
-func WriteFlag() {
+// Reads ID3v2 frames from rs. NOT TESTED !!!!
+func GetFrames(rs io.ReadSeeker) ([]*Frame, error) {
+	header, err := GetHeader(rs)
+	if err != nil {
+		return nil, err
+	}
 
+	tagsize := header.Size
+
+	fmt.Println("NEED TO READ ", tagsize)
+
+	var frames []*Frame
+	var read uint64 = 0
+	for {
+		if read == uint64(tagsize) {
+			break
+		}
+
+		frame, err := ReadFrame(rs)
+		if err != nil {
+			return frames, fmt.Errorf("could not read frame: %s", err)
+		}
+		frames = append(frames, frame)
+
+		// counting how many bytes has been read
+		read += 10 // frame header
+		if frame.Flags.InGroup {
+			// header has 1 additional byte
+			read += 1
+		}
+		read += uint64(frame.Size) // and the contents itself
+
+		fmt.Println("Read: ", read, "  ", frame.ID)
+	}
+
+	return frames, nil
 }
