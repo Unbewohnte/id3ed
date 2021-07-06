@@ -10,7 +10,7 @@ import (
 )
 
 // Retrieves ID3v1 field values of provided io.ReadSeeker (usually a file)
-func Getv1Tags(rs io.ReadSeeker) (*ID3v1Tags, error) {
+func Getv1Tag(rs io.ReadSeeker) (*ID3v1Tag, error) {
 	// set reader to the last 128 bytes
 	_, err := rs.Seek(-int64(ID3v1SIZE), io.SeekEnd)
 	if err != nil {
@@ -69,7 +69,7 @@ func Getv1Tags(rs io.ReadSeeker) (*ID3v1Tags, error) {
 		genre = ""
 	}
 
-	return &ID3v1Tags{
+	return &ID3v1Tag{
 		SongName: songname,
 		Artist:   artist,
 		Album:    album,

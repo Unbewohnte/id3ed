@@ -8,7 +8,7 @@ import (
 
 var TESTDATAPATH string = filepath.Join("..", "testData")
 
-var TESTv1TAGS = &ID3v1Tags{
+var TESTv1TAG = &ID3v1Tag{
 	SongName: "testsong",
 	Artist:   "testartist",
 	Album:    "testalbum",
@@ -22,13 +22,13 @@ func TestGetv1Tags(t *testing.T) {
 	if err != nil {
 		t.Errorf("could not open file for testing: %s", err)
 	}
-	tags, err := Getv1Tags(testfile)
+	tag, err := Getv1Tag(testfile)
 	if err != nil {
-		t.Errorf("GetID3v1Tags failed: %s", err)
+		t.Errorf("GetID3v1Tag failed: %s", err)
 	}
 
-	if tags.Comment != "Comment here " {
-		t.Errorf("GetID3v1Tags failed: expected %s; got %s", "Comment here ", tags.Comment)
+	if tag.Comment != "Comment here " {
+		t.Errorf("GetID3v1Tag failed: expected %s; got %s", "Comment here ", tag.Comment)
 	}
 }
 
@@ -39,26 +39,26 @@ func TestWritev1Tags(t *testing.T) {
 	}
 	defer f.Close()
 
-	tags := TESTv1TAGS
+	tag := TESTv1TAG
 
-	// writing tags
-	err = tags.Write(f)
+	// writing a tag
+	err = tag.Write(f)
 	if err != nil {
-		t.Errorf("WriteID3v1Tags failed: %s", err)
+		t.Errorf("WriteID3v1Tag failed: %s", err)
 	}
 
-	// reading tags
-	readTags, err := Getv1Tags(f)
+	// reading a tag
+	readTags, err := Getv1Tag(f)
 	if err != nil {
 		t.Errorf("%s", err)
 	}
 
 	if readTags.Album != "testalbum" {
-		t.Errorf("WriteID3v1Tags failed: expected %s; got %s", "testalbum", readTags.Album)
+		t.Errorf("WriteID3v1Tag failed: expected %s; got %s", "testalbum", readTags.Album)
 	}
 
 	if readTags.Year != 727 {
-		t.Errorf("WriteID3v1Tags failed: expected %d; got %d", 727, readTags.Year)
+		t.Errorf("WriteID3v1Tag failed: expected %d; got %d", 727, readTags.Year)
 	}
 }
 
@@ -68,9 +68,9 @@ func TestWriteID3v1ToFile(t *testing.T) {
 		t.Errorf("%s", err)
 	}
 
-	tags := TESTv1TAGS
+	tag := TESTv1TAG
 
-	err = tags.WriteToFile(f)
+	err = tag.WriteToFile(f)
 	if err != nil {
 		t.Errorf("WriteID3v1ToFile failed: %s", err)
 	}

@@ -9,7 +9,7 @@
 
 Right now it`s capable of reading and writing ID3v1 and ID3v1.1 tags.
 
-ID3v2.x support is still in making.
+ID3v2.x support is still in making, but it can read header and v.3~v.4 frames
 
 ---
 
@@ -19,8 +19,9 @@ To download package source:
 ```
 go get github.com/Unbewohnte/id3ed/...
 ```
+will be deprecated in 1.17 as far as I know
 
-To compile package:
+To donwload and compile package:
 ```
 go install github.com/Unbewohnte/id3ed/...
 ```

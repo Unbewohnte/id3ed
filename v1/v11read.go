@@ -10,21 +10,21 @@ import (
 )
 
 // Retrieves ID3v1.1 field values of provided io.ReadSeeker
-func Getv11Tags(rs io.ReadSeeker) (*ID3v11Tags, error) {
+func Getv11Tag(rs io.ReadSeeker) (*ID3v11Tag, error) {
 	// set reader to the last 128 bytes
 	_, err := rs.Seek(-int64(ID3v1SIZE), io.SeekEnd)
 	if err != nil {
 		return nil, fmt.Errorf("could not seek: %s", err)
 	}
 
-	tag, err := util.Read(rs, 3)
+	identifier, err := util.Read(rs, 3)
 	if err != nil {
 		return nil, err
 	}
 
-	if !bytes.Equal(tag, []byte(ID3v1IDENTIFIER)) {
-		// no TAG, given file does not use ID3v1
-		return nil, fmt.Errorf("does not use ID3v1: expected %s; got %s", ID3v1IDENTIFIER, tag)
+	if !bytes.Equal(identifier, []byte(ID3v1IDENTIFIER)) {
+		// no identifier, given file does not use ID3v1
+		return nil, fmt.Errorf("does not use ID3v1: expected %s; got %s", ID3v1IDENTIFIER, identifier)
 	}
 
 	songname, err := util.ReadToString(rs, 30)
@@ -85,7 +85,7 @@ func Getv11Tags(rs io.ReadSeeker) (*ID3v11Tags, error) {
 		genre = ""
 	}
 
-	return &ID3v11Tags{
+	return &ID3v11Tag{
 		SongName: songname,
 		Artist:   artist,
 		Album:    album,

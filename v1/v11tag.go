@@ -1,6 +1,6 @@
 package v1
 
-type ID3v11Tags struct {
+type ID3v11Tag struct {
 	SongName string
 	Artist   string
 	Album    string
@@ -10,6 +10,6 @@ type ID3v11Tags struct {
 	Genre    string
 }
 
-func (tags *ID3v11Tags) Version() int {
+func (*ID3v11Tag) Version() int {
 	return 11
 }

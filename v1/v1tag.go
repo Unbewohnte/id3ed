@@ -2,7 +2,7 @@ package v1
 
 // https://id3.org/ID3v1 - documentation
 
-type ID3v1Tags struct {
+type ID3v1Tag struct {
 	SongName string
 	Artist   string
 	Album    string
@@ -11,6 +11,6 @@ type ID3v1Tags struct {
 	Genre    string
 }
 
-func (tags *ID3v1Tags) Version() int {
+func (*ID3v1Tag) Version() int {
 	return 10
 }
