@@ -1,8 +1,8 @@
 package v2
 
 // type ID3v2Tag struct {
-// 	Header *Header
-// 	Frames []*Frame
+// 	Header Header
+// 	Frames []Frame
 // }
 
 // type V2TagReader interface {

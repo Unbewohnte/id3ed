@@ -45,15 +45,35 @@ func TestReadFrame(t *testing.T) {
 	}
 }
 
+func TestGetFrames(t *testing.T) {
+	f, err := os.Open(filepath.Join(TESTDATAPATH, "testreadv2.mp3"))
+	if err != nil {
+		t.Errorf("%s", err)
+	}
 
-// func TestGetFrames(t *testing.T) {
-// 	f, err := os.Open(filepath.Join(TESTDATAPATH, "testreadv2.mp3"))
-// 	if err != nil {
-// 		t.Errorf("%s", err)
-// 	}
+	_, err = GetFrames(f)
+	if err != nil {
+		t.Errorf("GetFrames failed: %s", err)
+	}
+}
 
-// 	_, err = GetFrames(f)
-// 	if err != nil {
-// 		t.Errorf("GetFrames failed: %s", err)
-// 	}
-// }
+func TestGetFrame(t *testing.T) {
+	f, err := os.Open(filepath.Join(TESTDATAPATH, "testreadv2.mp3"))
+	if err != nil {
+		t.Errorf("%s", err)
+	}
+
+	frames, err := GetFrames(f)
+	if err != nil {
+		t.Errorf("GetFrames failed: %s", err)
+	}
+
+	frame := GetFrame("TIT2", frames)
+	if frame.ID == "" {
+		t.Errorf("GetFrame failed: expected to find %s; got nothing", "TIT1")
+	}
+
+	if util.ToString(frame.Contents) != "title" {
+		t.Errorf("GetFrame failed: expected contents to be %s; got %s", "title", util.ToString(frame.Contents))
+	}
+}

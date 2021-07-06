@@ -23,35 +23,36 @@ type Header struct {
 	Size       int64 // size of the whole tag - 10 header bytes
 }
 
-// Reads and structuralises ID3v2.3.0 or ID3v2.4.0 header
-func GetHeader(rs io.ReadSeeker) (*Header, error) {
+// Reads and structuralises ID3v2.3.0 or ID3v2.4.0 header.
+// Returns a blank header struct if encountered an error
+func GetHeader(rs io.ReadSeeker) (Header, error) {
 	var header Header
 
 	rs.Seek(0, io.SeekStart)
 
 	identifier, err := util.Read(rs, 3)
 	if err != nil {
-		return nil, err
+		return Header{}, err
 	}
 	// check if ID3v2 is used
 	if !bytes.Equal([]byte(HEADERIDENTIFIER), identifier) {
-		return nil, fmt.Errorf("no ID3v2 identifier found")
+		return Header{}, fmt.Errorf("no ID3v2 identifier found")
 	}
 	header.Identifier = string(identifier)
 
 	// version
 	VersionBytes, err := util.Read(rs, 2)
 	if err != nil {
-		return nil, err
+		return Header{}, err
 	}
 
 	majorVersion, err := util.ByteToInt(VersionBytes[0])
 	if err != nil {
-		return nil, err
+		return Header{}, err
 	}
 	revisionNumber, err := util.ByteToInt(VersionBytes[1])
 	if err != nil {
-		return nil, err
+		return Header{}, err
 	}
 
 	var version string
@@ -63,7 +64,7 @@ func GetHeader(rs io.ReadSeeker) (*Header, error) {
 	case 4:
 		version = V2_4
 	default:
-		return nil, fmt.Errorf("ID3v2.%d.%d is not supported", majorVersion, revisionNumber)
+		return Header{}, fmt.Errorf("ID3v2.%d.%d is not supported", majorVersion, revisionNumber)
 	}
 
 	header.Version = version
@@ -71,7 +72,7 @@ func GetHeader(rs io.ReadSeeker) (*Header, error) {
 	// flags
 	flags, err := util.Read(rs, 1)
 	if err != nil {
-		return nil, err
+		return Header{}, err
 	}
 
 	flagBits := fmt.Sprintf("%08b", flags) // 1 byte is 8 bits
@@ -123,15 +124,15 @@ func GetHeader(rs io.ReadSeeker) (*Header, error) {
 	// size
 	sizeBytes, err := util.Read(rs, 4)
 	if err != nil {
-		return nil, err
+		return Header{}, err
 	}
 
 	size, err := util.BytesToIntIgnoreFirstBit(sizeBytes)
 	if err != nil {
-		return nil, err
+		return Header{}, err
 	}
 
 	header.Size = size
 
-	return &header, nil
+	return header, nil
 }

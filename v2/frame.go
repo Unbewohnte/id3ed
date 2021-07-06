@@ -3,6 +3,7 @@ package v2
 import (
 	"fmt"
 	"io"
+	"strings"
 
 	"github.com/Unbewohnte/id3ed/util"
 )
@@ -24,26 +25,37 @@ type Frame struct {
 	Contents  []byte
 }
 
-// Reads ID3v2.3.0 or ID3v2.4.0 frame
-func ReadFrame(rs io.Reader) (*Frame, error) {
+var ErrGotPadding error = fmt.Errorf("got padding")
+
+// Reads next ID3v2.3.0 or ID3v2.4.0 frame.
+// Returns a blank Frame struct if encountered an error
+func ReadFrame(rs io.Reader) (Frame, error) {
 	var frame Frame
 
 	// ID
 	identifier, err := util.ReadToString(rs, 4)
 	if err != nil {
-		return nil, err
+		return Frame{}, err
+	}
+	if len(identifier) < 1 {
+		// probably read all frames and got padding as identifier
+
+		// I know that it`s a terrible desicion, but with my current
+		// implementation it`s the only way I can see that will somewhat work
+
+		return Frame{}, ErrGotPadding
 	}
 	frame.ID = identifier
 
 	// Size
 	framesizeBytes, err := util.Read(rs, 4)
 	if err != nil {
-		return nil, err
+		return Frame{}, err
 	}
 
 	framesize, err := util.BytesToIntIgnoreFirstBit(framesizeBytes)
 	if err != nil {
-		return nil, err
+		return Frame{}, err
 	}
 
 	frame.Size = framesize
@@ -52,12 +64,12 @@ func ReadFrame(rs io.Reader) (*Frame, error) {
 
 	frameFlagsByte1, err := util.Read(rs, 1)
 	if err != nil {
-		return nil, err
+		return Frame{}, err
 	}
 
 	frameFlagsByte2, err := util.Read(rs, 1)
 	if err != nil {
-		return nil, err
+		return Frame{}, err
 	}
 
 	// I don`t have enough knowledge to handle this more elegantly
@@ -103,7 +115,7 @@ func ReadFrame(rs io.Reader) (*Frame, error) {
 	if flags.InGroup {
 		groupByte, err := util.Read(rs, 1)
 		if err != nil {
-			return nil, err
+			return Frame{}, err
 		}
 		frame.GroupByte = groupByte[0]
 	}
@@ -111,48 +123,44 @@ func ReadFrame(rs io.Reader) (*Frame, error) {
 	// Body
 	frameContents, err := util.Read(rs, uint64(framesize))
 	if err != nil {
-		return nil, err
+		return Frame{}, err
 	}
 
 	frame.Contents = frameContents
 
-	return &frame, nil
+	return frame, nil
 }
 
-// Reads ID3v2 frames from rs. NOT TESTED !!!!
-func GetFrames(rs io.ReadSeeker) ([]*Frame, error) {
-	header, err := GetHeader(rs)
+// Reads all ID3v2 frames from rs.
+// Returns a nil as []Frame if encountered an error
+func GetFrames(rs io.ReadSeeker) ([]Frame, error) {
+	// skip header
+	_, err := rs.Seek(10, io.SeekStart)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("could not skip header: %s", err)
 	}
 
-	tagsize := header.Size
-
-	fmt.Println("NEED TO READ ", tagsize)
-
-	var frames []*Frame
-	var read uint64 = 0
+	var frames []Frame
 	for {
-		if read == uint64(tagsize) {
-			break
-		}
-
 		frame, err := ReadFrame(rs)
+		if err == ErrGotPadding {
+			return frames, nil
+		}
+
 		if err != nil {
-			return frames, fmt.Errorf("could not read frame: %s", err)
+			return nil, fmt.Errorf("could not read frame: %s", err)
 		}
+
 		frames = append(frames, frame)
-
-		// counting how many bytes has been read
-		read += 10 // frame header
-		if frame.Flags.InGroup {
-			// header has 1 additional byte
-			read += 1
-		}
-		read += uint64(frame.Size) // and the contents itself
-
-		fmt.Println("Read: ", read, "  ", frame.ID)
 	}
+}
 
-	return frames, nil
+// Looks for a certain identificator in given frames and returns frame if found
+func GetFrame(id string, frames []Frame) Frame {
+	for _, frame := range frames {
+		if strings.Contains(frame.ID, id) {
+			return frame
+		}
+	}
+	return Frame{}
 }
