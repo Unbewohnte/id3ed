@@ -27,8 +27,20 @@ func TestGetv1Tags(t *testing.T) {
 		t.Errorf("GetID3v1Tag failed: %s", err)
 	}
 
+	if tag.Version != V1_1 {
+		t.Errorf("GetID3v1Tag failed: expected version to be %s; got %s", V1_1, tag.Version)
+	}
+
 	if tag.Comment != "Comment here " {
-		t.Errorf("GetID3v1Tag failed: expected %s; got %s", "Comment here ", tag.Comment)
+		t.Errorf("GetID3v1Tag failed: expected comment to be %s; got %s", "Comment here ", tag.Comment)
+	}
+
+	if tag.Genre != "Soundtrack" {
+		t.Errorf("GetID3v1Tag failed: expected genre to be %s; got %s", "Soundtrack", tag.Genre)
+	}
+
+	if tag.Track != 8 {
+		t.Errorf("GetID3v1Tag failed: expected track number to be %d; got %d", 8, tag.Track)
 	}
 }
 
@@ -42,23 +54,23 @@ func TestWritev1Tags(t *testing.T) {
 	tag := TESTv1TAG
 
 	// writing a tag
-	err = tag.Write(f)
+	err = tag.write(f)
 	if err != nil {
 		t.Errorf("WriteID3v1Tag failed: %s", err)
 	}
 
 	// reading a tag
-	readTags, err := Getv1Tag(f)
+	readTag, err := Getv1Tag(f)
 	if err != nil {
 		t.Errorf("%s", err)
 	}
 
-	if readTags.Album != "testalbum" {
-		t.Errorf("WriteID3v1Tag failed: expected %s; got %s", "testalbum", readTags.Album)
+	if readTag.Album != "testalbum" {
+		t.Errorf("WriteID3v1Tag failed: expected %s; got %s", "testalbum", readTag.Album)
 	}
 
-	if readTags.Year != 727 {
-		t.Errorf("WriteID3v1Tag failed: expected %d; got %d", 727, readTags.Year)
+	if readTag.Year != 727 {
+		t.Errorf("WriteID3v1Tag failed: expected %d; got %d", 727, readTag.Year)
 	}
 }
 

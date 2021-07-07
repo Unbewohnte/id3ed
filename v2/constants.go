@@ -7,6 +7,6 @@ const V2_2 string = "ID3v2.2"
 const V2_3 string = "ID3v2.3"
 const V2_4 string = "ID3v2.4"
 
-const V2_2FrameNameSize uint = 3
-const V2_3FrameNameSize uint = 4
-const V2_4FrameNameSize uint = 4
+const V2_2FrameIDSize uint = 3
+const V2_3FrameIDSize uint = 4
+const V2_4FrameIDSize uint = 4

@@ -10,10 +10,10 @@ import (
 	"github.com/Unbewohnte/id3ed/util"
 )
 
-// Writes given ID3v1.0 tag to given io.WriteSeeker.
+// Writes given ID3v1.0 or ID3v1.1 tag to given io.WriteSeeker.
 // NOTE: will not remove already existing ID3v1 tag if it`s present,
 // use ⁕WriteToFile⁕ method if you`re working with REAL mp3 files !!!
-func (tag *ID3v1Tag) Write(dst io.WriteSeeker) error {
+func (tag *ID3v1Tag) write(dst io.WriteSeeker) error {
 	dst.Seek(0, io.SeekEnd)
 
 	// ID
@@ -46,10 +46,34 @@ func (tag *ID3v1Tag) Write(dst io.WriteSeeker) error {
 		return fmt.Errorf("could not write to writer: %s", err)
 	}
 
-	// Comment
-	err = util.WriteToExtent(dst, []byte(tag.Comment), 30)
-	if err != nil {
-		return fmt.Errorf("could not write to writer: %s", err)
+	// Comment and Track
+
+	// check for track number, if specified and valid - comment must be shrinked to 28 bytes and 29th
+	// byte must be 0 byte (use ID3v1.1 instead of v1.0)
+	if tag.Track == 0 {
+		// write only 30 bytes long comment without track
+		err = util.WriteToExtent(dst, []byte(tag.Comment), 30)
+		if err != nil {
+			return fmt.Errorf("could not write to writer: %s", err)
+		}
+	} else {
+		// write 28 bytes long shrinked comment
+		err = util.WriteToExtent(dst, []byte(tag.Comment), 28)
+		if err != nil {
+			return fmt.Errorf("could not write to writer: %s", err)
+		}
+
+		// write 0 byte as padding
+		_, err = dst.Write([]byte{0})
+		if err != nil {
+			return fmt.Errorf("could not write to writer: %s", err)
+		}
+
+		// write track byte
+		_, err = dst.Write([]byte{byte(tag.Track)})
+		if err != nil {
+			return fmt.Errorf("could not write to writer: %s", err)
+		}
 	}
 
 	// Genre
@@ -69,7 +93,7 @@ func (tag *ID3v1Tag) Write(dst io.WriteSeeker) error {
 	return nil
 }
 
-// Checks for existing ID3v1 tag in file, if present - removes it and replaces with provided tag
+// Checks for existing ID3v1 or ID3v1.1 tag in file, if present - removes it and replaces with provided tag
 func (tag *ID3v1Tag) WriteToFile(f *os.File) error {
 	defer f.Close()
 
@@ -83,7 +107,7 @@ func (tag *ID3v1Tag) WriteToFile(f *os.File) error {
 
 	if !bytes.Equal(identifier, []byte(ID3v1IDENTIFIER)) {
 		// no existing identifier, just write given tag
-		err = tag.Write(f)
+		err = tag.write(f)
 		if err != nil {
 			return err
 		}
@@ -101,8 +125,8 @@ func (tag *ID3v1Tag) WriteToFile(f *os.File) error {
 		return fmt.Errorf("could not truncate file %s", err)
 	}
 
-	// writing new tag
-	err = tag.Write(f)
+	// writing a new tag
+	err = tag.write(f)
 	if err != nil {
 		return fmt.Errorf("could not write to writer: %s", err)
 	}

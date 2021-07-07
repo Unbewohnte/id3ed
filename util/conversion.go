@@ -7,8 +7,8 @@ import (
 )
 
 // Decodes given byte into integer
-func ByteToInt(gByte byte) (int64, error) {
-	integer, err := strconv.ParseInt(fmt.Sprintf("%d", gByte), 10, 64)
+func ByteToInt(gByte byte) (int, error) {
+	integer, err := strconv.Atoi(fmt.Sprintf("%d", gByte))
 	if err != nil {
 		return 0, err
 	}
