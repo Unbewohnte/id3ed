@@ -30,7 +30,7 @@ go install github.com/Unbewohnte/id3ed/...
 
 # ∙ Usage
 
-## ⚬ Decoding ID3v1.1
+## ⚬ Decoding ID3v1
 ```
 package main
 
@@ -46,7 +46,7 @@ func main() {
     }
 
     // extract ID3v1.1 tags 
-    mp3tags, err := id3v1.Getv11Tags(mp3file)
+    mp3tags, err := id3v1.Getv1Tag(mp3file)
     if err != nil {
        panic(err)
     }
@@ -62,7 +62,7 @@ func main() {
 }
 ```
 
-## ⚬ Encoding ID3v1.1
+## ⚬ Encoding ID3v1
 ```
 package main
 
@@ -79,7 +79,7 @@ func main() {
 	defer f.Close()
 
     // create your tags struct
-	tags := &id3v1.ID3v11Tags{
+	tag := &id3v1.ID3v1Tag{
             SongName: "mysong",
             Artist:   "me",
             Album:    "my album",
@@ -90,7 +90,7 @@ func main() {
 	}
 
     // write tags to file
-	err = tags.WriteToFile(f)
+	err = tag.WriteToFile(f)
 	if err != nil {
 		panic(err)
 	}
