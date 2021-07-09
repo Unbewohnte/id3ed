@@ -10,7 +10,7 @@ import (
 )
 
 // Retrieves ID3v1 field values of provided io.ReadSeeker (usually a file)
-func Getv1Tag(rs io.ReadSeeker) (*ID3v1Tag, error) {
+func Readv1Tag(rs io.ReadSeeker) (*ID3v1Tag, error) {
 	var tag ID3v1Tag
 
 	// set reader to the last 128 bytes
@@ -67,7 +67,7 @@ func Getv1Tag(rs io.ReadSeeker) (*ID3v1Tag, error) {
 	if err != nil {
 		return nil, err
 	}
-	tag.Comment = util.ToString(comment)
+	tag.Comment = util.ToStringLossy(comment)
 	tag.Track = 0
 
 	var track int = 0
@@ -81,7 +81,7 @@ func Getv1Tag(rs io.ReadSeeker) (*ID3v1Tag, error) {
 		tag.Track = uint8(track)
 
 		comment = comment[0:28]
-		tag.Comment = util.ToString(comment)
+		tag.Comment = util.ToStringLossy(comment)
 	}
 
 	// Genre

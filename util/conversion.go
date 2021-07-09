@@ -38,7 +38,7 @@ func BytesToIntIgnoreFirstBit(gBytes []byte) (int64, error) {
 
 // Converts given bytes into string, ignoring the first 31 non-printable ASCII characters.
 // (LOSSY, if given bytes contain some nasty ones)
-func ToString(gBytes []byte) string {
+func ToStringLossy(gBytes []byte) string {
 	var filteredBytes []byte
 	for _, b := range gBytes {
 		if b <= 31 {

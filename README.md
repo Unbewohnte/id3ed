@@ -9,7 +9,7 @@
 
 Right now it`s capable of reading and writing ID3v1 and ID3v1.1 tags.
 
-ID3v2.x support is still in making, but it can read header and v.3~v.4 frames
+ID3v2 support is still in making, but it can read header and frames
 
 ---
 
@@ -28,7 +28,7 @@ go install github.com/Unbewohnte/id3ed/...
 
 ---
 
-# ∙ Usage
+# ∙ Examples
 
 ## ⚬ Decoding ID3v1
 ```

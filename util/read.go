@@ -24,5 +24,5 @@ func ReadToString(rs io.Reader, n uint64) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("could not read from reader: %s", err)
 	}
-	return ToString(read), nil
+	return ToStringLossy(read), nil
 }

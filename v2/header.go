@@ -23,62 +23,57 @@ type Header struct {
 	Size       int64 // size of the whole tag - 10 header bytes
 }
 
-// Reads and structuralises ID3v2.3.0 or ID3v2.4.0 header.
+// Reads and structuralises ID3v2 header from given bytes.
 // Returns a blank header struct if encountered an error
-func GetHeader(rs io.ReadSeeker) (Header, error) {
+func ReadHeader(rs io.ReadSeeker) (Header, error) {
+	_, err := rs.Seek(0, io.SeekStart)
+	if err != nil {
+		return Header{}, fmt.Errorf("could not seek: %s", err)
+	}
+
+	hBytes, err := util.Read(rs, uint64(HEADERSIZE))
+	if err != nil {
+		return Header{}, fmt.Errorf("could not read from reader: %s", err)
+	}
+
 	var header Header
 
-	rs.Seek(0, io.SeekStart)
+	identifier := hBytes[0:3]
 
-	identifier, err := util.Read(rs, 3)
-	if err != nil {
-		return Header{}, err
-	}
-	// check if ID3v2 is used
+	// check if has identifier ID3v2
 	if !bytes.Equal([]byte(HEADERIDENTIFIER), identifier) {
 		return Header{}, fmt.Errorf("no ID3v2 identifier found")
 	}
 	header.Identifier = string(identifier)
 
 	// version
-	VersionBytes, err := util.Read(rs, 2)
+	majorVersion, err := util.ByteToInt(hBytes[3])
+	if err != nil {
+		return Header{}, err
+	}
+	revisionNumber, err := util.ByteToInt(hBytes[4])
 	if err != nil {
 		return Header{}, err
 	}
 
-	majorVersion, err := util.ByteToInt(VersionBytes[0])
-	if err != nil {
-		return Header{}, err
-	}
-	revisionNumber, err := util.ByteToInt(VersionBytes[1])
-	if err != nil {
-		return Header{}, err
-	}
-
-	var version string
 	switch majorVersion {
 	case 2:
-		version = V2_2
+		header.Version = V2_2
 	case 3:
-		version = V2_3
+		header.Version = V2_3
 	case 4:
-		version = V2_4
+		header.Version = V2_4
 	default:
-		return Header{}, fmt.Errorf("ID3v2.%d.%d is not supported", majorVersion, revisionNumber)
+		return Header{}, fmt.Errorf("ID3v2.%d.%d is not supported or invalid", majorVersion, revisionNumber)
 	}
-
-	header.Version = version
 
 	// flags
-	flags, err := util.Read(rs, 1)
-	if err != nil {
-		return Header{}, err
-	}
+	flags := hBytes[5]
 
 	flagBits := fmt.Sprintf("%08b", flags) // 1 byte is 8 bits
 
 	// v3.0 and v4.0 have different amount of flags
-	switch version {
+	switch header.Version {
 	case V2_3:
 		if flagBits[0] == 1 {
 			header.Flags.Unsynchronisated = true
@@ -122,10 +117,7 @@ func GetHeader(rs io.ReadSeeker) (Header, error) {
 	}
 
 	// size
-	sizeBytes, err := util.Read(rs, 4)
-	if err != nil {
-		return Header{}, err
-	}
+	sizeBytes := hBytes[6:]
 
 	size, err := util.BytesToIntIgnoreFirstBit(sizeBytes)
 	if err != nil {

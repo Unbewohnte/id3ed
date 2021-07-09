@@ -17,12 +17,12 @@ var TESTv1TAG = &ID3v1Tag{
 	Genre:    "Blues",
 }
 
-func TestGetv1Tags(t *testing.T) {
+func TestReadv1Tag(t *testing.T) {
 	testfile, err := os.OpenFile(filepath.Join(TESTDATAPATH, "testreadv1.mp3"), os.O_CREATE|os.O_RDONLY, os.ModePerm)
 	if err != nil {
 		t.Errorf("could not open file for testing: %s", err)
 	}
-	tag, err := Getv1Tag(testfile)
+	tag, err := Readv1Tag(testfile)
 	if err != nil {
 		t.Errorf("GetID3v1Tag failed: %s", err)
 	}
@@ -60,7 +60,7 @@ func TestWritev1Tags(t *testing.T) {
 	}
 
 	// reading a tag
-	readTag, err := Getv1Tag(f)
+	readTag, err := Readv1Tag(f)
 	if err != nil {
 		t.Errorf("%s", err)
 	}

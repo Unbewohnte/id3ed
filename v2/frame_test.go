@@ -1,7 +1,6 @@
 package v2
 
 import (
-	"io"
 	"os"
 	"path/filepath"
 	"testing"
@@ -9,71 +8,65 @@ import (
 	"github.com/Unbewohnte/id3ed/util"
 )
 
-func TestReadFrame(t *testing.T) {
+func TestReadNextFrame(t *testing.T) {
 	f, err := os.Open(filepath.Join(TESTDATAPATH, "testreadv2.mp3"))
 	if err != nil {
 		t.Errorf("%s", err)
 	}
 
-	// read right after header`s bytes
-	f.Seek(int64(HEADERSIZE), io.SeekStart)
+	header, err := ReadHeader(f)
+	if err != nil {
+		t.Errorf("%s", err)
+	}
 
-	firstFrame, err := ReadFrame(f)
+	firstFrame, _, err := ReadNextFrame(f, header)
 	if err != nil {
 		t.Errorf("ReadFrame failed: %s", err)
 	}
 
-	if firstFrame.ID != "TRCK" {
-		t.Errorf("ReadFrame failed: expected ID %s; got %s", "TRCK", firstFrame.ID)
+	if firstFrame.Header.ID != "TRCK" {
+		t.Errorf("GetFrame failed: expected ID %s; got %s",
+			"TRCK", firstFrame.Header.ID)
 	}
 
-	if firstFrame.Flags.Encrypted != false {
-		t.Errorf("ReadFrame failed: expected compressed flag to be %v; got %v", false, firstFrame.Flags.Encrypted)
+	if firstFrame.Header.Flags.Encrypted != false {
+		t.Errorf("ReadFrame failed: expected compressed flag to be %v; got %v",
+			false, firstFrame.Header.Flags.Encrypted)
 	}
 
-	secondFrame, err := ReadFrame(f)
+	secondFrame, _, err := ReadNextFrame(f, header)
 	if err != nil {
 		t.Errorf("ReadFrame failed: %s", err)
 	}
 
-	if secondFrame.ID != "TDRC" {
-		t.Errorf("ReadFrame failed: expected ID %s; got %s", "TDRC", secondFrame.ID)
+	if secondFrame.Header.ID != "TDRC" {
+		t.Errorf("ReadFrame failed: expected ID %s; got %s",
+			"TDRC", secondFrame.Header.ID)
 	}
 
-	if util.ToString(secondFrame.Contents) != "2006" {
-		t.Errorf("ReadFrame failed: expected contents to be %s; got %s", "2006", util.ToString(secondFrame.Contents))
+	if util.ToStringLossy(secondFrame.Contents) != "2006" {
+		t.Errorf("ReadFrame failed: expected contents to be %s; got %s",
+			"2006", secondFrame.Contents)
 	}
 }
 
-func TestGetFrames(t *testing.T) {
-	f, err := os.Open(filepath.Join(TESTDATAPATH, "testreadv2.mp3"))
-	if err != nil {
-		t.Errorf("%s", err)
-	}
+// func TestGetFrames(t *testing.T) {
+// 	f, err := os.Open(filepath.Join(TESTDATAPATH, "testreadv2.mp3"))
+// 	if err != nil {
+// 		t.Errorf("%s", err)
+// 	}
 
-	_, err = GetFrames(f)
-	if err != nil {
-		t.Errorf("GetFrames failed: %s", err)
-	}
-}
+// 	frames, err := GetFrames(f)
+// 	if err != nil {
+// 		t.Errorf("GetFrames failed: %s", err)
+// 	}
 
-func TestGetFrame(t *testing.T) {
-	f, err := os.Open(filepath.Join(TESTDATAPATH, "testreadv2.mp3"))
-	if err != nil {
-		t.Errorf("%s", err)
-	}
+// 	titleFrame, ok := frames["TIT2"]
+// 	if !ok {
+// 		t.Errorf("GetFrames failed: no %s in frames", "TIT2")
+// 	}
 
-	frames, err := GetFrames(f)
-	if err != nil {
-		t.Errorf("GetFrames failed: %s", err)
-	}
-
-	frame := GetFrame("TIT2", frames)
-	if frame.ID == "" {
-		t.Errorf("GetFrame failed: expected to find %s; got nothing", "TIT1")
-	}
-
-	if util.ToString(frame.Contents) != "title" {
-		t.Errorf("GetFrame failed: expected contents to be %s; got %s", "title", util.ToString(frame.Contents))
-	}
-}
+// 	if util.ToStringLossy(titleFrame.Contents) != "title" {
+// 		t.Errorf("GetFrames failed: expected title to be %s; got %s", "title", titleFrame.Contents)
+// 	}
+// }

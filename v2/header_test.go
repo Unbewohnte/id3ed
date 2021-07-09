@@ -14,7 +14,7 @@ func TestGetHeader(t *testing.T) {
 		t.Errorf("%s", err)
 	}
 
-	header, err := GetHeader(f)
+	header, err := ReadHeader(f)
 	if err != nil {
 		t.Errorf("GetHeader failed: %s", err)
 	}

@@ -3,10 +3,13 @@ package v2
 import (
 	"fmt"
 	"io"
-	"strings"
 
 	"github.com/Unbewohnte/id3ed/util"
 )
+
+var ErrGotPadding error = fmt.Errorf("got padding")
+var ErrBiggerThanSize error = fmt.Errorf("frame size is bigger than size of the whole tag")
+var ErrInvalidFHeaderSize error = fmt.Errorf("frame header must be 6 or 10 bytes long")
 
 type FrameFlags struct {
 	TagAlterPreservation  bool
@@ -17,150 +20,136 @@ type FrameFlags struct {
 	InGroup               bool
 }
 
+type FrameHeader struct {
+	ID    string
+	Size  int64
+	Flags FrameFlags
+}
+
 type Frame struct {
-	ID        string
-	Size      int64
-	Flags     FrameFlags
-	GroupByte byte
-	Contents  []byte
+	Header   FrameHeader
+	Contents []byte
 }
 
-var ErrGotPadding error = fmt.Errorf("got padding")
+// Structuralises frame header from given bytes. For versions see: constants.
+func getFrameHeader(fHeaderbytes []byte, version string) (FrameHeader, error) {
+	// validation check
+	if int(len(fHeaderbytes)) != int(10) && int(len(fHeaderbytes)) != int(6) {
+		return FrameHeader{}, ErrInvalidFHeaderSize
+	}
 
-// Reads next ID3v2.3.0 or ID3v2.4.0 frame.
-// Returns a blank Frame struct if encountered an error
-func ReadFrame(rs io.Reader) (Frame, error) {
+	var header FrameHeader
+
+	switch version {
+	case V2_2:
+		header.ID = string(fHeaderbytes[0:3])
+
+		framesizeBytes, err := util.BytesToIntIgnoreFirstBit(fHeaderbytes[3:6])
+		if err != nil {
+			return FrameHeader{}, err
+		}
+		header.Size = framesizeBytes
+
+	case V2_3:
+		fallthrough
+
+	case V2_4:
+		fallthrough
+
+	default:
+		// ID
+		header.ID = string(fHeaderbytes[0:4])
+
+		// Size
+		framesizeBytes := fHeaderbytes[4:8]
+
+		framesize, err := util.BytesToIntIgnoreFirstBit(framesizeBytes)
+		if err != nil {
+			return FrameHeader{}, err
+		}
+
+		header.Size = framesize
+
+		// Flags
+		frameFlagsByte1 := fHeaderbytes[8]
+		frameFlagsByte2 := fHeaderbytes[9]
+
+		// I don`t have enough knowledge to handle this more elegantly
+
+		flagsByte1Bits := fmt.Sprintf("%08b", frameFlagsByte1)
+		flagsByte2Bits := fmt.Sprintf("%08b", frameFlagsByte2)
+		var flags FrameFlags
+
+		if flagsByte1Bits[0] == 1 {
+			flags.TagAlterPreservation = true
+		} else {
+			flags.TagAlterPreservation = false
+		}
+		if flagsByte1Bits[1] == 1 {
+			flags.FileAlterPreservation = true
+		} else {
+			flags.FileAlterPreservation = false
+		}
+		if flagsByte1Bits[2] == 1 {
+			flags.ReadOnly = true
+		} else {
+			flags.ReadOnly = false
+		}
+		if flagsByte2Bits[0] == 1 {
+			flags.Compressed = true
+		} else {
+			flags.Compressed = false
+		}
+		if flagsByte2Bits[1] == 1 {
+			flags.Encrypted = true
+		} else {
+			flags.Encrypted = false
+		}
+		if flagsByte2Bits[2] == 1 {
+			flags.InGroup = true
+		} else {
+			flags.InGroup = false
+		}
+
+		header.Flags = flags
+	}
+
+	return header, nil
+}
+
+// Reads ID3v2.3.0 or ID3v2.4.0 frame from given frame bytes.
+// Returns a blank Frame struct if encountered an error, amount of
+// bytes read from io.Reader.
+func ReadNextFrame(r io.Reader, h Header) (Frame, uint64, error) {
 	var frame Frame
+	var read uint64 = 0
 
-	// ID
-	identifier, err := util.ReadToString(rs, 4)
+	// Frame header
+	headerBytes, err := util.Read(r, uint64(HEADERSIZE))
 	if err != nil {
-		return Frame{}, err
+		return Frame{}, 0, err
 	}
-	if len(identifier) < 1 {
-		// probably read all frames and got padding as identifier
 
-		// I know that it`s a terrible desicion, but with my current
-		// implementation it`s the only way I can see that will somewhat work
+	read += uint64(HEADERSIZE)
 
-		return Frame{}, ErrGotPadding
+	frameHeader, err := getFrameHeader(headerBytes, h.Version)
+	if err == ErrGotPadding {
+		return Frame{}, read, err
+	} else if err != nil {
+		return Frame{}, read, fmt.Errorf("could not get header of a frame: %s", err)
 	}
-	frame.ID = identifier
 
-	// Size
-	framesizeBytes, err := util.Read(rs, 4)
+	frame.Header = frameHeader
+
+	// Contents
+	contents, err := util.Read(r, uint64(frameHeader.Size))
 	if err != nil {
-		return Frame{}, err
+		return Frame{}, read, err
 	}
 
-	framesize, err := util.BytesToIntIgnoreFirstBit(framesizeBytes)
-	if err != nil {
-		return Frame{}, err
-	}
+	frame.Contents = contents
 
-	frame.Size = framesize
+	read += uint64(frameHeader.Size)
 
-	// Flags
-
-	frameFlagsByte1, err := util.Read(rs, 1)
-	if err != nil {
-		return Frame{}, err
-	}
-
-	frameFlagsByte2, err := util.Read(rs, 1)
-	if err != nil {
-		return Frame{}, err
-	}
-
-	// I don`t have enough knowledge to handle this more elegantly
-	// Any pointers ?
-
-	flagsByte1Bits := fmt.Sprintf("%08b", frameFlagsByte1)
-	flagsByte2Bits := fmt.Sprintf("%08b", frameFlagsByte2)
-	var flags FrameFlags
-
-	if flagsByte1Bits[0] == 1 {
-		flags.TagAlterPreservation = true
-	} else {
-		flags.TagAlterPreservation = false
-	}
-	if flagsByte1Bits[1] == 1 {
-		flags.FileAlterPreservation = true
-	} else {
-		flags.FileAlterPreservation = false
-	}
-	if flagsByte1Bits[2] == 1 {
-		flags.ReadOnly = true
-	} else {
-		flags.ReadOnly = false
-	}
-	if flagsByte2Bits[0] == 1 {
-		flags.Compressed = true
-	} else {
-		flags.Compressed = false
-	}
-	if flagsByte2Bits[1] == 1 {
-		flags.Encrypted = true
-	} else {
-		flags.Encrypted = false
-	}
-	if flagsByte2Bits[2] == 1 {
-		flags.InGroup = true
-	} else {
-		flags.InGroup = false
-	}
-
-	frame.Flags = flags
-
-	if flags.InGroup {
-		groupByte, err := util.Read(rs, 1)
-		if err != nil {
-			return Frame{}, err
-		}
-		frame.GroupByte = groupByte[0]
-	}
-
-	// Body
-	frameContents, err := util.Read(rs, uint64(framesize))
-	if err != nil {
-		return Frame{}, err
-	}
-
-	frame.Contents = frameContents
-
-	return frame, nil
-}
-
-// Reads all ID3v2 frames from rs.
-// Returns a nil as []Frame if encountered an error
-func GetFrames(rs io.ReadSeeker) ([]Frame, error) {
-	// skip header
-	_, err := rs.Seek(10, io.SeekStart)
-	if err != nil {
-		return nil, fmt.Errorf("could not skip header: %s", err)
-	}
-
-	var frames []Frame
-	for {
-		frame, err := ReadFrame(rs)
-		if err == ErrGotPadding {
-			return frames, nil
-		}
-
-		if err != nil {
-			return nil, fmt.Errorf("could not read frame: %s", err)
-		}
-
-		frames = append(frames, frame)
-	}
-}
-
-// Looks for a certain identificator in given frames and returns frame if found
-func GetFrame(id string, frames []Frame) Frame {
-	for _, frame := range frames {
-		if strings.Contains(frame.ID, id) {
-			return frame
-		}
-	}
-	return Frame{}
+	return frame, read, err
 }
