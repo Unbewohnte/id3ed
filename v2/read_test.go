@@ -19,10 +19,16 @@ func TestReadV2Tag(t *testing.T) {
 		t.Errorf("GetV2Tag failed: %s", err)
 	}
 
-	titleFrame := tag.Frames["TIT2"]
+	titleFrame := tag.GetFrame("TIT2")
 
 	if util.ToStringLossy(titleFrame.Contents) != "title" {
-		t.Errorf("ReadV2Tag failed: expected contents to be %s; got %s",
+		t.Errorf("ReadV2Tag failed: expected contents of the title frame to be %s; got %s",
 			"title", util.ToStringLossy(titleFrame.Contents))
+	}
+
+	album := tag.Album()
+	if album != "album" {
+		t.Errorf("ReadV2Tag failed: expected contents of the album to be %s; got %s",
+			"album", album)
 	}
 }

@@ -119,15 +119,12 @@ func main() {
        panic(err)
     }
 
-    if mp3tag.Header.Version == id3v2.V2_3 {
-        // get certain frame by identifier.
-        // Contents is []byte. CAN AND PROBABLY WILL
-        // CONTAIN NULL OR OTHER NON-PRINTABLE BYTES !!!
-        // Text encoding support is still not implemented. 
-        title := mp3tag.Frames["TIT2"].Contents
-        artist := mp3tag.Frames["TPE1"].Contents
-    }
-
+    // you can get some essential frames` contents from getters
+    title := tag.Title() // string
+    
+    // or get direct frame by id
+    commentFrame := tag.GetFrame("COMM") // *Frame 
+    // commentFrame.(Header.(...)|Contents)
 
     // etc.
 }

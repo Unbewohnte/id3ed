@@ -2,7 +2,7 @@ package v2
 
 // from [https://id3.org/]
 
-var V2_2FrameIdentifiers  = map[string]string{
+var V2_2FrameIdentifiers = map[string]string{
 	"BUF": "Recommended buffer size",
 	"CNT": "Play counter",
 	"COM": "Comments",
@@ -231,4 +231,31 @@ var V2_4FrameIdentifiers = map[string]string{
 	"WPAY": "Payment",
 	"WPUB": "Publishers official webpage",
 	"WXXX": "User defined URL link frame",
+}
+
+// Searches for given ID3v2 frame identifier and returns its
+// description if found, else returns a ""
+func GetFIdentifierDescription(id string) string {
+	if len(id) == 3 {
+		// ID3v2.2.0 identifier
+		description, ok := V2_2FrameIdentifiers[id]
+		if !ok {
+			return ""
+		}
+		return description
+
+	} else if len(id) == 4 {
+		// ID3v2.(3|4).0 identifier
+		description, ok := V2_3FrameIdentifiers[id]
+		if !ok {
+			// not in v3, search in v4
+			description, ok = V2_4FrameIdentifiers[id]
+			if !ok {
+				return ""
+			}
+		}
+		return description
+	}
+
+	return ""
 }

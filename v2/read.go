@@ -34,14 +34,8 @@ func ReadV2Tag(rs io.ReadSeeker) (*ID3v2Tag, error) {
 		frames = append(frames, frame)
 	}
 
-	// create a map from collected frames
-	framesMp := make(map[string]Frame)
-	for _, frame := range frames {
-		framesMp[frame.Header.ID] = frame
-	}
-
 	return &ID3v2Tag{
 		Header: header,
-		Frames: framesMp,
+		Frames: frames,
 	}, nil
 }
