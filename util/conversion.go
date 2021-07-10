@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+
+	euni "golang.org/x/text/encoding/unicode"
 )
 
 // Decodes given byte into integer
@@ -39,13 +41,55 @@ func BytesToIntIgnoreFirstBit(gBytes []byte) (int64, error) {
 // Converts given bytes into string, ignoring the first 31 non-printable ASCII characters.
 // (LOSSY, if given bytes contain some nasty ones)
 func ToStringLossy(gBytes []byte) string {
-	var filteredBytes []byte
+	var runes []rune
 	for _, b := range gBytes {
 		if b <= 31 {
 			continue
 		}
-		filteredBytes = append(filteredBytes, b)
+		runes = append(runes, rune(b))
 	}
 
-	return strings.ToValidUTF8(string(filteredBytes), "")
+	return strings.ToValidUTF8(string(runes), "")
+}
+
+// Decodes the given frame`s contents
+func DecodeText(fContents []byte) string {
+	textEncoding := fContents[0] // the first byte is the encoding
+
+	switch textEncoding {
+	case 0:
+		// ISO-8859-1
+		return ToStringLossy(fContents[1:])
+	case 1:
+		// UTF-16 with BOM
+		encoding := euni.UTF16(euni.BigEndian, euni.ExpectBOM)
+		decoder := encoding.NewDecoder()
+
+		decodedBytes := make([]byte, len(fContents)*2)
+		_, _, err := decoder.Transform(decodedBytes, fContents[1:], true)
+		if err != nil {
+			return ""
+		}
+
+		return string(decodedBytes)
+
+	case 2:
+		// UTF-16
+		encoding := euni.UTF16(euni.BigEndian, euni.IgnoreBOM)
+		decoder := encoding.NewDecoder()
+
+		decodedBytes := make([]byte, len(fContents)*2)
+		_, _, err := decoder.Transform(decodedBytes, fContents[1:], true)
+		if err != nil {
+			return ""
+		}
+
+		return string(decodedBytes)
+
+	case 3:
+		// UTF-8
+		return ToStringLossy(fContents[1:])
+	}
+
+	return ""
 }

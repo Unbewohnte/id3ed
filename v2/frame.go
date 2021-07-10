@@ -153,3 +153,11 @@ func ReadNextFrame(r io.Reader, h Header) (Frame, uint64, error) {
 
 	return frame, read, err
 }
+
+// Returns decoded string from f.Contents.
+// Note that it can and probably will return
+// corrupted data if you use it on non-text frames such as APIC
+// for such cases please deal with raw []byte
+func (f *Frame) Text() string {
+	return util.DecodeText(f.Contents)
+}

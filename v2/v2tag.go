@@ -1,7 +1,5 @@
 package v2
 
-import "github.com/Unbewohnte/id3ed/util"
-
 type ID3v2Tag struct {
 	Header Header
 	Frames []Frame
@@ -22,9 +20,9 @@ func (tag *ID3v2Tag) GetFrame(id string) *Frame {
 func (tag *ID3v2Tag) Title() string {
 	switch tag.Header.Version {
 	case V2_2:
-		return util.ToStringLossy(tag.GetFrame("TT2").Contents)
+		return tag.GetFrame("TT2").Text()
 	default:
-		return util.ToStringLossy(tag.GetFrame("TIT2").Contents)
+		return tag.GetFrame("TIT2").Text()
 	}
 }
 
@@ -32,9 +30,9 @@ func (tag *ID3v2Tag) Title() string {
 func (tag *ID3v2Tag) Album() string {
 	switch tag.Header.Version {
 	case V2_2:
-		return util.ToStringLossy(tag.GetFrame("TAL").Contents)
+		return tag.GetFrame("TAL").Text()
 	default:
-		return util.ToStringLossy(tag.GetFrame("TALB").Contents)
+		return tag.GetFrame("TALB").Text()
 	}
 }
 
@@ -42,9 +40,9 @@ func (tag *ID3v2Tag) Album() string {
 func (tag *ID3v2Tag) Artist() string {
 	switch tag.Header.Version {
 	case V2_2:
-		return util.ToStringLossy(tag.GetFrame("TP1").Contents)
+		return tag.GetFrame("TP1").Text()
 	default:
-		return util.ToStringLossy(tag.GetFrame("TPE1").Contents)
+		return tag.GetFrame("TPE1").Text()
 	}
 }
 
@@ -52,9 +50,9 @@ func (tag *ID3v2Tag) Artist() string {
 func (tag *ID3v2Tag) Year() string {
 	switch tag.Header.Version {
 	case V2_2:
-		return util.ToStringLossy(tag.GetFrame("TYE").Contents)
+		return tag.GetFrame("TYE").Text()
 	default:
-		return util.ToStringLossy(tag.GetFrame("TYER").Contents)
+		return tag.GetFrame("TYER").Text()
 	}
 }
 
@@ -62,8 +60,8 @@ func (tag *ID3v2Tag) Year() string {
 func (tag *ID3v2Tag) Comment() string {
 	switch tag.Header.Version {
 	case V2_2:
-		return util.ToStringLossy(tag.GetFrame("COM").Contents)
+		return tag.GetFrame("COM").Text()
 	default:
-		return util.ToStringLossy(tag.GetFrame("COMM").Contents)
+		return tag.GetFrame("COMM").Text()
 	}
 }

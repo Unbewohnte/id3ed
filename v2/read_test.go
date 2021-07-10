@@ -4,8 +4,6 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
-
-	"github.com/Unbewohnte/id3ed/util"
 )
 
 func TestReadV2Tag(t *testing.T) {
@@ -21,14 +19,14 @@ func TestReadV2Tag(t *testing.T) {
 
 	titleFrame := tag.GetFrame("TIT2")
 
-	if util.ToStringLossy(titleFrame.Contents) != "title" {
+	if titleFrame.Text() != "title" {
 		t.Errorf("ReadV2Tag failed: expected contents of the title frame to be %s; got %s",
-			"title", util.ToStringLossy(titleFrame.Contents))
+			"title", titleFrame.Text())
 	}
 
 	album := tag.Album()
 	if album != "album" {
-		t.Errorf("ReadV2Tag failed: expected contents of the album to be %s; got %s",
+		t.Errorf("ReadV2Tag failed: expected contents of the album frame to be %s; got %s",
 			"album", album)
 	}
 }
