@@ -30,7 +30,7 @@ go install github.com/Unbewohnte/id3ed/...
 
 # ∙ Examples
 
-## ⚬ Reading ID3v1
+## ⚬ Directly reading ID3v1
 ```
 package main
 
@@ -63,7 +63,7 @@ func main() {
 }
 ```
 
-## ⚬ Writing ID3v1
+## ⚬ Directly writing ID3v1
 ```
 package main
 
@@ -98,7 +98,7 @@ func main() {
 }
 ```
 
-## ⚬ Reading ID3v2
+## ⚬ Directly reading ID3v2
 ```
 package main
 
@@ -129,6 +129,49 @@ func main() {
     // etc.
 }
 
+```
+
+## ⚬ Easier way to read/write tags
+
+```
+package main
+
+import(
+    "fmt"
+    "github.com/Unbewohnte/id3ed"
+    id3v1 "github.com/Unbewohnte/id3ed/v1"
+)
+
+func main() {
+    f, err := id3ed.Open("/path/to/mp3/myMP3.mp3")
+    if err != nil {
+        panic(err)
+    }
+    
+    // reading and writing tags is easy and done by one struct !
+    if f.ContainsID3v2 {
+        for_, frame := range f.ID3v2Tag.Frames{
+           fmt.Printf("%s\n", frame.Header.ID)
+        }
+    }
+
+    tag := &id3v1.ID3v1Tag{
+            SongName: "mysong",
+            Artist:   "me",
+            Album:    "my album",
+            Year:     2021,
+            Comment:  "Cool song",
+            Track:    1,
+            Genre:    "Christian Gangsta Rap", // for list of genres see: "./v1/genres.go"
+	}
+
+    err = f.WriteID3v1(tag)
+    if err != nil {
+        panic(err)
+    }
+    
+    // etc. 
+}
 ```
 
 ---
