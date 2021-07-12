@@ -14,12 +14,12 @@ func TestReadNextFrame(t *testing.T) {
 		t.Errorf("%s", err)
 	}
 
-	header, err := ReadHeader(f)
+	header, err := readHeader(f)
 	if err != nil {
 		t.Errorf("%s", err)
 	}
 
-	firstFrame, _, err := ReadNextFrame(f, header)
+	firstFrame, _, err := readNextFrame(f, header)
 	if err != nil {
 		t.Errorf("ReadFrame failed: %s", err)
 	}
@@ -34,7 +34,7 @@ func TestReadNextFrame(t *testing.T) {
 			false, firstFrame.Header.Flags.Encrypted)
 	}
 
-	secondFrame, _, err := ReadNextFrame(f, header)
+	secondFrame, _, err := readNextFrame(f, header)
 	if err != nil {
 		t.Errorf("ReadFrame failed: %s", err)
 	}
@@ -49,24 +49,3 @@ func TestReadNextFrame(t *testing.T) {
 			"2006", secondFrame.Contents)
 	}
 }
-
-// func TestGetFrames(t *testing.T) {
-// 	f, err := os.Open(filepath.Join(TESTDATAPATH, "testreadv2.mp3"))
-// 	if err != nil {
-// 		t.Errorf("%s", err)
-// 	}
-
-// 	frames, err := GetFrames(f)
-// 	if err != nil {
-// 		t.Errorf("GetFrames failed: %s", err)
-// 	}
-
-// 	titleFrame, ok := frames["TIT2"]
-// 	if !ok {
-// 		t.Errorf("GetFrames failed: no %s in frames", "TIT2")
-// 	}
-
-// 	if util.ToStringLossy(titleFrame.Contents) != "title" {
-// 		t.Errorf("GetFrames failed: expected title to be %s; got %s", "title", titleFrame.Contents)
-// 	}
-// }

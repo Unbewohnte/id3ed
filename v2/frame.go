@@ -3,6 +3,7 @@ package v2
 import (
 	"fmt"
 	"io"
+	"strings"
 
 	"github.com/Unbewohnte/id3ed/util"
 )
@@ -10,6 +11,7 @@ import (
 var ErrGotPadding error = fmt.Errorf("got padding")
 var ErrBiggerThanSize error = fmt.Errorf("frame size is bigger than size of the whole tag")
 var ErrInvalidFHeaderSize error = fmt.Errorf("frame header must be 6 or 10 bytes long")
+var ErrInvalidID error = fmt.Errorf("invalid identifier")
 
 type FrameFlags struct {
 	TagAlterPreservation  bool
@@ -31,6 +33,20 @@ type Frame struct {
 	Contents []byte
 }
 
+// Checks if provided frame identifier is valid by
+// its length and presence of invalid characters.
+func isValidFrameID(frameID []byte) bool {
+	if len(frameID) != 3 && len(frameID) != 4 {
+		return false
+	}
+	str := strings.ToValidUTF8(string(frameID), "invalidChar")
+	if len(str) != 3 && len(str) != 4 {
+		return false
+	}
+
+	return true
+}
+
 // Structuralises frame header from given bytes. For versions see: constants.
 func getFrameHeader(fHeaderbytes []byte, version string) (FrameHeader, error) {
 	// validation check
@@ -42,6 +58,9 @@ func getFrameHeader(fHeaderbytes []byte, version string) (FrameHeader, error) {
 
 	switch version {
 	case V2_2:
+		if !isValidFrameID(fHeaderbytes[0:3]) {
+			return FrameHeader{}, ErrInvalidID
+		}
 		header.ID = string(fHeaderbytes[0:3])
 
 		framesizeBytes, err := util.BytesToIntIgnoreFirstBit(fHeaderbytes[3:6])
@@ -58,6 +77,9 @@ func getFrameHeader(fHeaderbytes []byte, version string) (FrameHeader, error) {
 
 	default:
 		// ID
+		if !isValidFrameID(fHeaderbytes[0:4]) {
+			return FrameHeader{}, ErrInvalidID
+		}
 		header.ID = string(fHeaderbytes[0:4])
 
 		// Size
@@ -120,7 +142,7 @@ func getFrameHeader(fHeaderbytes []byte, version string) (FrameHeader, error) {
 // Reads ID3v2.3.0 or ID3v2.4.0 frame from given frame bytes.
 // Returns a blank Frame struct if encountered an error, amount of
 // bytes read from io.Reader.
-func ReadNextFrame(r io.Reader, h Header) (Frame, uint64, error) {
+func readNextFrame(r io.Reader, h Header) (Frame, uint64, error) {
 	var frame Frame
 	var read uint64 = 0
 
@@ -133,7 +155,7 @@ func ReadNextFrame(r io.Reader, h Header) (Frame, uint64, error) {
 	read += uint64(HEADERSIZE)
 
 	frameHeader, err := getFrameHeader(headerBytes, h.Version)
-	if err == ErrGotPadding {
+	if err == ErrGotPadding || err == ErrInvalidID {
 		return Frame{}, read, err
 	} else if err != nil {
 		return Frame{}, read, fmt.Errorf("could not get header of a frame: %s", err)

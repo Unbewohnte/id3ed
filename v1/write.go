@@ -14,10 +14,13 @@ import (
 // NOTE: will not remove already existing ID3v1 tag if it`s present,
 // use ⁕WriteToFile⁕ method if you`re working with REAL mp3 files !!!
 func (tag *ID3v1Tag) write(dst io.WriteSeeker) error {
-	dst.Seek(0, io.SeekEnd)
+	_, err := dst.Seek(0, io.SeekEnd)
+	if err != nil {
+		return fmt.Errorf("could not seek: %s", err)
+	}
 
 	// ID
-	_, err := dst.Write([]byte(ID3v1IDENTIFIER))
+	_, err = dst.Write([]byte(ID3v1IDENTIFIER))
 	if err != nil {
 		return fmt.Errorf("could not write to writer: %s", err)
 	}

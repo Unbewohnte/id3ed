@@ -9,6 +9,8 @@ import (
 	"github.com/Unbewohnte/id3ed/util"
 )
 
+var ErrDoesNotUseID3v1 error = fmt.Errorf("does not use ID3v1")
+
 // Retrieves ID3v1 field values of provided io.ReadSeeker (usually a file)
 func Readv1Tag(rs io.ReadSeeker) (*ID3v1Tag, error) {
 	var tag ID3v1Tag
@@ -27,7 +29,7 @@ func Readv1Tag(rs io.ReadSeeker) (*ID3v1Tag, error) {
 
 	if !bytes.Equal(identifier, []byte(ID3v1IDENTIFIER)) {
 		// no identifier, given file does not use ID3v1
-		return nil, fmt.Errorf("does not use ID3v1: expected %s; got %s", ID3v1IDENTIFIER, identifier)
+		return nil, ErrDoesNotUseID3v1
 	}
 
 	// Songname
@@ -100,9 +102,9 @@ func Readv1Tag(rs io.ReadSeeker) (*ID3v1Tag, error) {
 	tag.Genre = genre
 
 	if track == 0 {
-		tag.Version = V1_0
+		tag.version = V1_0
 	} else {
-		tag.Version = V1_1
+		tag.version = V1_1
 	}
 
 	return &tag, nil

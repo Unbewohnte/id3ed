@@ -8,13 +8,13 @@ import (
 
 var TESTDATAPATH string = filepath.Join("..", "testData")
 
-func TestGetHeader(t *testing.T) {
+func TestReadHeader(t *testing.T) {
 	f, err := os.Open(filepath.Join(TESTDATAPATH, "testreadv2.mp3"))
 	if err != nil {
 		t.Errorf("%s", err)
 	}
 
-	header, err := ReadHeader(f)
+	header, err := readHeader(f)
 	if err != nil {
 		t.Errorf("GetHeader failed: %s", err)
 	}

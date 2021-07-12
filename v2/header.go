@@ -8,6 +8,8 @@ import (
 	"github.com/Unbewohnte/id3ed/util"
 )
 
+var ErrDoesNotUseID3v2 error = fmt.Errorf("does not use ID3v2")
+
 type HeaderFlags struct {
 	Unsynchronisated  bool
 	HasExtendedHeader bool
@@ -25,7 +27,7 @@ type Header struct {
 
 // Reads and structuralises ID3v2 header from given bytes.
 // Returns a blank header struct if encountered an error
-func ReadHeader(rs io.ReadSeeker) (Header, error) {
+func readHeader(rs io.ReadSeeker) (Header, error) {
 	_, err := rs.Seek(0, io.SeekStart)
 	if err != nil {
 		return Header{}, fmt.Errorf("could not seek: %s", err)
@@ -42,7 +44,7 @@ func ReadHeader(rs io.ReadSeeker) (Header, error) {
 
 	// check if has identifier ID3v2
 	if !bytes.Equal([]byte(HEADERIDENTIFIER), identifier) {
-		return Header{}, fmt.Errorf("no ID3v2 identifier found")
+		return Header{}, ErrDoesNotUseID3v2
 	}
 	header.Identifier = string(identifier)
 

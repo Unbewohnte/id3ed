@@ -3,7 +3,7 @@ package v1
 // https://id3.org/ID3v1 - documentation
 
 type ID3v1Tag struct {
-	Version  string
+	version  string
 	SongName string
 	Artist   string
 	Album    string
