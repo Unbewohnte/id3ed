@@ -29,4 +29,9 @@ func TestReadV2Tag(t *testing.T) {
 		t.Errorf("ReadV2Tag failed: expected contents of the album frame to be %s; got %s",
 			"album", album)
 	}
+
+	picture := tag.Picture()
+	if picture != nil {
+		t.Errorf("ReadV2Tag failed: expected it not to have a picture")
+	}
 }
