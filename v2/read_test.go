@@ -32,6 +32,6 @@ func TestReadV2Tag(t *testing.T) {
 
 	picture := tag.Picture()
 	if picture != nil {
-		t.Errorf("ReadV2Tag failed: expected it not to have a picture")
+		t.Errorf("ReadV2Tag failed: expected file not to have a picture")
 	}
 }

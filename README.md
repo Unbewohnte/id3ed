@@ -7,9 +7,8 @@
 
 # Project status
 
-Right now it`s capable of reading and writing ID3v1 and ID3v1.1 tags.
-
-ID3v2 support is still in making, but it can read header and frames
+Right now it`s capable of reading and writing ID3v1 and ID3v1.1 tags,
+reading ID3v2. ID3v2 writing support is still not implemented.
 
 ---
 

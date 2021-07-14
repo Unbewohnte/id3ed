@@ -22,7 +22,7 @@ type Header struct {
 	Identifier string
 	Flags      HeaderFlags
 	Version    string
-	Size       int64 // size of the whole tag - 10 header bytes
+	Size       uint32
 }
 
 // Reads and structuralises ID3v2 header from given bytes.
@@ -121,10 +121,7 @@ func readHeader(rs io.ReadSeeker) (Header, error) {
 	// size
 	sizeBytes := hBytes[6:]
 
-	size, err := util.BytesToIntIgnoreFirstBit(sizeBytes)
-	if err != nil {
-		return Header{}, err
-	}
+	size := util.BytesToIntIgnoreFirstBit(sizeBytes)
 
 	header.Size = size
 

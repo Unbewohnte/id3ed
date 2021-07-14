@@ -8,6 +8,10 @@ import (
 	euni "golang.org/x/text/encoding/unicode"
 )
 
+// got the logic from: https://github.com/bogem/id3v2 , thank you very much.
+
+const first7BitsMask = uint32(254) << 24 // shifting 11111110 to the end of uint32
+
 // Decodes given byte into integer
 func ByteToInt(gByte byte) (int, error) {
 	integer, err := strconv.Atoi(fmt.Sprintf("%d", gByte))
@@ -19,23 +23,29 @@ func ByteToInt(gByte byte) (int, error) {
 
 // Decodes given integer bytes into integer, ignores the first bit
 // of every given byte in binary form
-func BytesToIntIgnoreFirstBit(gBytes []byte) (int64, error) {
-	// represent each byte in size as binary and get rid from the first bit,
-	// then concatenate filtered parts
-	var filteredBits string
+func BytesToIntIgnoreFirstBit(gBytes []byte) uint32 {
+	var integer uint32 = 0
 	for _, b := range gBytes {
-		// ignore the first bit
-		filteredPart := fmt.Sprintf("%08b", b)[1:] // byte is 8 bits
-		filteredBits += filteredPart
+		integer = integer << 7
+		integer = integer | uint32(b)
 	}
 
-	// convert filtered binary into usable int64
-	integer, err := strconv.ParseInt(filteredBits, 2, 64)
-	if err != nil {
-		return -1, err
+	return integer
+}
+
+// The exact opposite of what `BytesToIntIgnoreFirstBit` does
+func IntToBytesFirstBitZeroed(gInt uint32) []byte {
+	bytes := make([]byte, 32)
+
+	// looping 4 times (32 bits / 8 bits (4 bytes in int32))
+	for i := 0; i < 32; i += 8 {
+		gIntCopy := gInt //ie: 		  11010100 11001011 00100000 10111111
+		first7 := gIntCopy & first7BitsMask
+		shifted := first7 >> 25 //    00000000 00000000 00000000 01101010
+		bytes = append(bytes, byte(shifted))
 	}
 
-	return integer, nil
+	return bytes
 }
 
 // Converts given bytes into string, ignoring the first 31 non-printable ASCII characters.

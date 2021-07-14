@@ -24,7 +24,7 @@ type FrameFlags struct {
 
 type FrameHeader struct {
 	ID    string
-	Size  int64
+	Size  uint32
 	Flags FrameFlags
 }
 
@@ -63,10 +63,7 @@ func getFrameHeader(fHeaderbytes []byte, version string) (FrameHeader, error) {
 		}
 		header.ID = string(fHeaderbytes[0:3])
 
-		framesizeBytes, err := util.BytesToIntIgnoreFirstBit(fHeaderbytes[3:6])
-		if err != nil {
-			return FrameHeader{}, err
-		}
+		framesizeBytes := util.BytesToIntIgnoreFirstBit(fHeaderbytes[3:6])
 		header.Size = framesizeBytes
 
 	case V2_3:
@@ -85,10 +82,7 @@ func getFrameHeader(fHeaderbytes []byte, version string) (FrameHeader, error) {
 		// Size
 		framesizeBytes := fHeaderbytes[4:8]
 
-		framesize, err := util.BytesToIntIgnoreFirstBit(framesizeBytes)
-		if err != nil {
-			return FrameHeader{}, err
-		}
+		framesize := util.BytesToIntIgnoreFirstBit(framesizeBytes)
 
 		header.Size = framesize
 
@@ -183,3 +177,17 @@ func readNextFrame(r io.Reader, h Header) (Frame, uint64, error) {
 func (f *Frame) Text() string {
 	return util.DecodeText(f.Contents)
 }
+
+// Returns bytes of the frame that can be
+// written in a file.
+// func (f *Frame) Bytes() ([]byte, error) {
+// 	header := f.Header
+// 	contents := f.Contents
+
+// 	var headerbytes []byte
+
+// 	identifierBytes := []byte(header.ID)
+// 	// sizeBytes
+
+// 	return nil, nil
+// }
