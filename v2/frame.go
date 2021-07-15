@@ -63,7 +63,7 @@ func getFrameHeader(fHeaderbytes []byte, version string) (FrameHeader, error) {
 		}
 		header.ID = string(fHeaderbytes[0:3])
 
-		framesizeBytes := util.BytesToIntIgnoreFirstBit(fHeaderbytes[3:6])
+		framesizeBytes := util.BytesToIntSynchsafe(fHeaderbytes[3:6])
 		header.Size = framesizeBytes
 
 	case V2_3:
@@ -82,7 +82,7 @@ func getFrameHeader(fHeaderbytes []byte, version string) (FrameHeader, error) {
 		// Size
 		framesizeBytes := fHeaderbytes[4:8]
 
-		framesize := util.BytesToIntIgnoreFirstBit(framesizeBytes)
+		framesize := util.BytesToIntSynchsafe(framesizeBytes)
 
 		header.Size = framesize
 

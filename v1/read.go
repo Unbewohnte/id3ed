@@ -9,11 +9,113 @@ import (
 	"github.com/Unbewohnte/id3ed/util"
 )
 
-var ErrDoesNotUseID3v1 error = fmt.Errorf("does not use ID3v1")
+var errDoesNotUseEnhancedID3v1 error = fmt.Errorf("does not use enhanced ID3v1 tag")
 
-// Retrieves ID3v1 field values of provided io.ReadSeeker (usually a file)
+// Checks if enhanced tag is used
+func usesEnhancedTag(rs io.ReadSeeker) bool {
+	_, err := rs.Seek(-int64(ID3v1SIZE+ENHANCEDSIZE), io.SeekEnd)
+	if err != nil {
+		return false
+	}
+	identifier, err := util.Read(rs, 4)
+	if err != nil {
+		return false
+	}
+	if !bytes.Equal(identifier, []byte(ID3v1ENHANCEDIDENTIFIER)) {
+		return false
+	}
+
+	return true
+}
+
+// Tries to read enhanced ID3V1 tag from rs
+func readEnhancedTag(rs io.ReadSeeker) (EnhancedID3v1Tag, error) {
+
+	if !usesEnhancedTag(rs) {
+		return EnhancedID3v1Tag{}, errDoesNotUseEnhancedID3v1
+	}
+
+	var enhanced EnhancedID3v1Tag
+
+	// set reader into the position
+	_, err := rs.Seek(-int64(ID3v1SIZE+ENHANCEDSIZE), io.SeekEnd)
+	if err != nil {
+		return enhanced, fmt.Errorf("could not seek: %s", err)
+	}
+
+	// songname
+	songName, err := util.ReadToString(rs, 60)
+	if err != nil {
+		return EnhancedID3v1Tag{}, err
+	}
+	enhanced.SongName = songName
+
+	artist, err := util.ReadToString(rs, 60)
+	if err != nil {
+		return enhanced, err
+	}
+	enhanced.Artist = artist
+
+	// album
+	album, err := util.ReadToString(rs, 60)
+	if err != nil {
+		return enhanced, err
+	}
+	enhanced.Album = album
+
+	// speed
+	speedByte, err := util.Read(rs, 1)
+	if err != nil {
+		return enhanced, err
+	}
+
+	var speed string
+	switch speedByte[0] {
+	case 0:
+		speed = "Unset"
+	case 1:
+		speed = "Slow"
+	case 2:
+		speed = "Medium"
+	case 3:
+		speed = "Fast"
+	case 4:
+		speed = "Hardcore"
+	}
+	enhanced.Speed = speed
+
+	// genre
+	genre, err := util.ReadToString(rs, 30)
+	if err != nil {
+		return enhanced, err
+	}
+	enhanced.Genre = genre
+
+	// time
+	startTime, err := util.ReadToString(rs, 6)
+	if err != nil {
+		return enhanced, err
+	}
+	enhanced.StartTime = startTime
+
+	endtime, err := util.ReadToString(rs, 6)
+	if err != nil {
+		return enhanced, err
+	}
+	enhanced.EndTime = endtime
+
+	return enhanced, nil
+}
+
+// Retrieves ID3v1 field values from rs.
 func Readv1Tag(rs io.ReadSeeker) (*ID3v1Tag, error) {
 	var tag ID3v1Tag
+
+	// check if uses enhanced tag
+	if usesEnhancedTag(rs) {
+		enhanced, _ := readEnhancedTag(rs)
+		tag.EnhancedTag = enhanced
+	}
 
 	// set reader to the last 128 bytes
 	_, err := rs.Seek(-int64(ID3v1SIZE), io.SeekEnd)
@@ -76,10 +178,8 @@ func Readv1Tag(rs io.ReadSeeker) (*ID3v1Tag, error) {
 	// check if 29th byte is null byte (v1.0 or v1.1)
 	if comment[28] == 0 {
 		// it is v1.1, track number exists
-		track, err = util.ByteToInt(comment[29])
-		if err != nil {
-			return nil, fmt.Errorf("could not get int from byte: %s", err)
-		}
+		track = int(comment[29])
+
 		tag.Track = uint8(track)
 
 		comment = comment[0:28]
@@ -91,10 +191,8 @@ func Readv1Tag(rs io.ReadSeeker) (*ID3v1Tag, error) {
 	if err != nil {
 		return nil, err
 	}
-	genreInt, err := util.ByteToInt(genreByte[0])
-	if err != nil {
-		return nil, fmt.Errorf("cannot convert bytes to int: %s", err)
-	}
+	genreInt := int(genreByte[0])
+
 	genre, exists := id3v1genres[int(genreInt)]
 	if !exists {
 		genre = ""

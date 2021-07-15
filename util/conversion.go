@@ -1,8 +1,6 @@
 package util
 
 import (
-	"fmt"
-	"strconv"
 	"strings"
 
 	euni "golang.org/x/text/encoding/unicode"
@@ -12,18 +10,19 @@ import (
 
 const first7BitsMask = uint32(254) << 24 // shifting 11111110 to the end of uint32
 
-// Decodes given byte into integer
-func ByteToInt(gByte byte) (int, error) {
-	integer, err := strconv.Atoi(fmt.Sprintf("%d", gByte))
-	if err != nil {
-		return 0, err
+// Converts given bytes into integer
+func BytesToInt(gBytes []byte) uint32 {
+	var integer uint32 = 0
+	for _, b := range gBytes {
+		integer = integer << 8
+		integer = integer | uint32(b)
 	}
-	return integer, nil
+	return integer
 }
 
 // Decodes given integer bytes into integer, ignores the first bit
 // of every given byte in binary form
-func BytesToIntIgnoreFirstBit(gBytes []byte) uint32 {
+func BytesToIntSynchsafe(gBytes []byte) uint32 {
 	var integer uint32 = 0
 	for _, b := range gBytes {
 		integer = integer << 7
@@ -34,14 +33,14 @@ func BytesToIntIgnoreFirstBit(gBytes []byte) uint32 {
 }
 
 // The exact opposite of what `BytesToIntIgnoreFirstBit` does
-func IntToBytesFirstBitZeroed(gInt uint32) []byte {
+func SynchsafeIntToBytes(gInt uint32) []byte {
 	bytes := make([]byte, 32)
 
 	// looping 4 times (32 bits / 8 bits (4 bytes in int32))
 	for i := 0; i < 32; i += 8 {
-		gIntCopy := gInt //ie: 		  11010100 11001011 00100000 10111111
-		first7 := gIntCopy & first7BitsMask
-		shifted := first7 >> 25 //    00000000 00000000 00000000 01101010
+		gIntCopy := gInt                    //11010101 11001011 00100000 10111111
+		first7 := gIntCopy & first7BitsMask //11010100 00000000 00000000 00000000
+		shifted := first7 >> 25             //00000000 00000000 00000000 01101010
 		bytes = append(bytes, byte(shifted))
 	}
 
