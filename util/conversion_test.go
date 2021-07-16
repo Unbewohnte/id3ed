@@ -25,13 +25,23 @@ func TestDecodeText(t *testing.T) {
 	}
 }
 
-// func TestIntToBytesFirstBitZeroed(t *testing.T) {
-// 	var testint uint32 = 123456
+func TestIntToBytesSynchsafe(t *testing.T) {
+	testInts := []uint32{
+		1234,
+		12,
+		1,
+		0,
+		99999,
+		87654321,
+	}
 
-// 	intbytes := IntToBytesFirstBitZeroed(testint)
+	for _, testInt := range testInts {
+		synchSafeBytes := IntToBytesSynchsafe(testInt)
 
-// 	if BytesToIntIgnoreFirstBit(intbytes) != testint {
-// 		t.Errorf("IntToBytesFirstBitZeroed failed: expected to get %v; got %v",
-// 			testint, BytesToIntIgnoreFirstBit(intbytes))
-// 	}
-// }
+		synchsafeInt := BytesToIntSynchsafe(synchSafeBytes)
+
+		if synchsafeInt != testInt {
+			t.Errorf("BytesToIntSynchsafe failed: expected to get %d; got %d", testInt, synchsafeInt)
+		}
+	}
+}

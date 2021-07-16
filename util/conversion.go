@@ -7,8 +7,7 @@ import (
 )
 
 // got the logic from: https://github.com/bogem/id3v2 , thank you very much.
-
-const first7BitsMask = uint32(254) << 24 // shifting 11111110 to the end of uint32
+const first7BitsMask = uint32(254 << 24) // shifting 11111110 to the end of uint32
 
 // Converts given bytes into integer
 func BytesToInt(gBytes []byte) uint32 {
@@ -32,19 +31,30 @@ func BytesToIntSynchsafe(gBytes []byte) uint32 {
 	return integer
 }
 
-// The exact opposite of what `BytesToIntIgnoreFirstBit` does
-func SynchsafeIntToBytes(gInt uint32) []byte {
-	bytes := make([]byte, 32)
+// The exact opposite of what `BytesToIntSynchsafe` does
+// Finally understood with the help of: https://github.com/bogem/id3v2/blob/master/size.go ,
+// thank you very much !
+func IntToBytesSynchsafe(gInt uint32) []byte {
+	synchsafeIBytes := make([]byte, 4)
 
-	// looping 4 times (32 bits / 8 bits (4 bytes in int32))
-	for i := 0; i < 32; i += 8 {
-		gIntCopy := gInt                    //11010101 11001011 00100000 10111111
-		first7 := gIntCopy & first7BitsMask //11010100 00000000 00000000 00000000
-		shifted := first7 >> 25             //00000000 00000000 00000000 01101010
-		bytes = append(bytes, byte(shifted))
+	// skip 4 0`ed bits
+	gInt = gInt << 4
+
+	// int32 == 4 bytes
+	for i := 0; i < 32/8; i++ {
+		// get first 7 bits
+		first7Bits := gInt & first7BitsMask
+
+		// shift captured bits to the beginning
+		first7Bits = first7Bits >> (3*8 + 1)
+
+		b := byte(first7Bits)
+		synchsafeIBytes = append(synchsafeIBytes, b)
+
+		// prepare next 7 bits for the next iteration
+		gInt = gInt << 7
 	}
-
-	return bytes
+	return synchsafeIBytes
 }
 
 // Converts given bytes into string, ignoring the first 31 non-printable ASCII characters.
