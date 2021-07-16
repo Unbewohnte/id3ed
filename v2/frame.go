@@ -87,41 +87,37 @@ func getFrameHeader(fHeaderbytes []byte, version string) (FrameHeader, error) {
 		header.Size = framesize
 
 		// Flags
-		frameFlagsByte1 := fHeaderbytes[8]
-		frameFlagsByte2 := fHeaderbytes[9]
+		frameFlags1 := fHeaderbytes[8]
+		frameFlags2 := fHeaderbytes[9]
 
-		// I don`t have enough knowledge to handle this more elegantly
-
-		flagsByte1Bits := fmt.Sprintf("%08b", frameFlagsByte1)
-		flagsByte2Bits := fmt.Sprintf("%08b", frameFlagsByte2)
 		var flags FrameFlags
 
-		if flagsByte1Bits[0] == 1 {
+		if util.GetBit(frameFlags1, 1) {
 			flags.TagAlterPreservation = true
 		} else {
 			flags.TagAlterPreservation = false
 		}
-		if flagsByte1Bits[1] == 1 {
+		if util.GetBit(frameFlags1, 2) {
 			flags.FileAlterPreservation = true
 		} else {
 			flags.FileAlterPreservation = false
 		}
-		if flagsByte1Bits[2] == 1 {
+		if util.GetBit(frameFlags1, 3) {
 			flags.ReadOnly = true
 		} else {
 			flags.ReadOnly = false
 		}
-		if flagsByte2Bits[0] == 1 {
+		if util.GetBit(frameFlags2, 1) {
 			flags.Compressed = true
 		} else {
 			flags.Compressed = false
 		}
-		if flagsByte2Bits[1] == 1 {
+		if util.GetBit(frameFlags2, 1) {
 			flags.Encrypted = true
 		} else {
 			flags.Encrypted = false
 		}
-		if flagsByte2Bits[2] == 1 {
+		if util.GetBit(frameFlags2, 1) {
 			flags.InGroup = true
 		} else {
 			flags.InGroup = false
@@ -179,7 +175,7 @@ func (f *Frame) Text() string {
 }
 
 // Returns bytes of the frame that can be
-// written in a file.
+// written into a file.
 // func (f *Frame) Bytes() ([]byte, error) {
 // 	header := f.Header
 // 	contents := f.Contents

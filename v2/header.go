@@ -72,8 +72,7 @@ func (h *Header) readExtendedHeader(r io.Reader) error {
 		if err != nil {
 			return fmt.Errorf("could not read from reader: %s", err)
 		}
-		flagbits := fmt.Sprintf("%08b", extendedFlag[0])
-		if flagbits[0] == 1 {
+		if util.GetBit(extendedFlag[0], 1) {
 			extended.Flags.CRCpresent = true
 		} else {
 			extended.Flags.CRCpresent = false
@@ -90,20 +89,19 @@ func (h *Header) readExtendedHeader(r io.Reader) error {
 			return fmt.Errorf("could not read from reader: %s", err)
 		}
 
-		flagBits := fmt.Sprintf("%08b", flagByte[0])
-		if flagBits[1] == 1 {
+		if util.GetBit(flagByte[0], 2) {
 			extended.Flags.UpdateTag = true
 		} else {
 			extended.Flags.UpdateTag = false
 		}
 
-		if flagBits[2] == 1 {
+		if util.GetBit(flagByte[0], 3) {
 			extended.Flags.CRCpresent = true
 		} else {
 			extended.Flags.CRCpresent = false
 		}
 
-		if flagBits[3] == 1 {
+		if util.GetBit(flagByte[0], 4) {
 			extended.Flags.HasRestrictions = true
 		} else {
 			extended.Flags.HasRestrictions = false
@@ -195,7 +193,7 @@ func readHeader(rs io.ReadSeeker) (Header, error) {
 
 	identifier := hBytes[0:3]
 
-	// check if has identifier ID3v2
+	// check if has ID3v2 identifier
 	if !bytes.Equal([]byte(HEADERIDENTIFIER), identifier) {
 		return Header{}, ErrDoesNotUseID3v2
 	}
@@ -219,33 +217,31 @@ func readHeader(rs io.ReadSeeker) (Header, error) {
 	// flags
 	flags := hBytes[5]
 
-	flagBits := fmt.Sprintf("%08b", flags) // 1 byte is 8 bits
-
 	// v3.0 and v4.0 have different amount of flags
 	switch header.Version {
 	case V2_2:
-		if flagBits[0] == 1 {
+		if util.GetBit(flags, 1) {
 			header.Flags.Unsynchronisated = true
 		} else {
 			header.Flags.Unsynchronisated = false
 		}
-		if flagBits[1] == 1 {
+		if util.GetBit(flags, 2) {
 			header.Flags.Compressed = true
 		} else {
 			header.Flags.Compressed = false
 		}
 	case V2_3:
-		if flagBits[0] == 1 {
+		if util.GetBit(flags, 1) {
 			header.Flags.Unsynchronisated = true
 		} else {
 			header.Flags.Unsynchronisated = false
 		}
-		if flagBits[1] == 1 {
+		if util.GetBit(flags, 2) {
 			header.Flags.HasExtendedHeader = true
 		} else {
 			header.Flags.HasExtendedHeader = false
 		}
-		if flagBits[2] == 1 {
+		if util.GetBit(flags, 3) {
 			header.Flags.Experimental = true
 		} else {
 			header.Flags.Experimental = false
@@ -254,22 +250,22 @@ func readHeader(rs io.ReadSeeker) (Header, error) {
 		header.Flags.FooterPresent = false
 
 	case V2_4:
-		if flagBits[0] == 1 {
+		if util.GetBit(flags, 1) {
 			header.Flags.Unsynchronisated = true
 		} else {
 			header.Flags.Unsynchronisated = false
 		}
-		if flagBits[1] == 1 {
+		if util.GetBit(flags, 2) {
 			header.Flags.HasExtendedHeader = true
 		} else {
 			header.Flags.HasExtendedHeader = false
 		}
-		if flagBits[2] == 1 {
+		if util.GetBit(flags, 3) {
 			header.Flags.Experimental = true
 		} else {
 			header.Flags.Experimental = false
 		}
-		if flagBits[3] == 1 {
+		if util.GetBit(flags, 4) {
 			header.Flags.FooterPresent = true
 		} else {
 			header.Flags.FooterPresent = false
