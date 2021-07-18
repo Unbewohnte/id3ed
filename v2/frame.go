@@ -14,12 +14,14 @@ var ErrInvalidFHeaderSize error = fmt.Errorf("frame header must be 6 or 10 bytes
 var ErrInvalidID error = fmt.Errorf("invalid identifier")
 
 type FrameFlags struct {
-	TagAlterPreservation  bool
-	FileAlterPreservation bool
-	ReadOnly              bool
-	Compressed            bool
-	Encrypted             bool
-	InGroup               bool
+	TagAlterPreservation   bool
+	FileAlterPreservation  bool
+	ReadOnly               bool
+	Compressed             bool
+	Encrypted              bool
+	InGroup                bool
+	Unsyrchronised         bool
+	HasDataLengthIndicator bool
 }
 
 type FrameHeader struct {
@@ -47,6 +49,146 @@ func isValidFrameID(frameID []byte) bool {
 	return true
 }
 
+func getV22FrameHeader(fHeaderbytes []byte) (FrameHeader, error) {
+	var header FrameHeader
+
+	if !isValidFrameID(fHeaderbytes[0:3]) {
+		return FrameHeader{}, ErrInvalidID
+	}
+	header.ID = string(fHeaderbytes[0:3])
+
+	framesizeBytes := util.BytesToIntSynchsafe(fHeaderbytes[3:6])
+	header.Size = framesizeBytes
+
+	return header, nil
+}
+
+func getV23FrameHeader(fHeaderbytes []byte) (FrameHeader, error) {
+	var header FrameHeader
+
+	// ID
+	if !isValidFrameID(fHeaderbytes[0:4]) {
+		return FrameHeader{}, ErrInvalidID
+	}
+	header.ID = string(fHeaderbytes[0:4])
+
+	// Size
+	framesizeBytes := fHeaderbytes[4:8]
+
+	framesize := util.BytesToIntSynchsafe(framesizeBytes)
+
+	header.Size = framesize
+
+	// Flags
+	frameFlags1 := fHeaderbytes[8]
+	frameFlags2 := fHeaderbytes[9]
+
+	var flags FrameFlags
+
+	if util.GetBit(frameFlags1, 1) {
+		flags.TagAlterPreservation = true
+	} else {
+		flags.TagAlterPreservation = false
+	}
+	if util.GetBit(frameFlags1, 2) {
+		flags.FileAlterPreservation = true
+	} else {
+		flags.FileAlterPreservation = false
+	}
+	if util.GetBit(frameFlags1, 3) {
+		flags.ReadOnly = true
+	} else {
+		flags.ReadOnly = false
+	}
+	if util.GetBit(frameFlags2, 1) {
+		flags.Compressed = true
+	} else {
+		flags.Compressed = false
+	}
+	if util.GetBit(frameFlags2, 1) {
+		flags.Encrypted = true
+	} else {
+		flags.Encrypted = false
+	}
+	if util.GetBit(frameFlags2, 1) {
+		flags.InGroup = true
+	} else {
+		flags.InGroup = false
+	}
+
+	header.Flags = flags
+
+	return header, nil
+}
+
+func getV24FrameHeader(fHeaderbytes []byte) (FrameHeader, error) {
+	var header FrameHeader
+
+	// ID
+	if !isValidFrameID(fHeaderbytes[0:4]) {
+		return FrameHeader{}, ErrInvalidID
+	}
+	header.ID = string(fHeaderbytes[0:4])
+
+	// Size
+	framesizeBytes := fHeaderbytes[4:8]
+
+	framesize := util.BytesToIntSynchsafe(framesizeBytes)
+
+	header.Size = framesize
+
+	// Flags
+	frameFlags1 := fHeaderbytes[8]
+	frameFlags2 := fHeaderbytes[9]
+
+	var flags FrameFlags
+
+	if util.GetBit(frameFlags1, 2) {
+		flags.TagAlterPreservation = true
+	} else {
+		flags.TagAlterPreservation = false
+	}
+	if util.GetBit(frameFlags1, 3) {
+		flags.FileAlterPreservation = true
+	} else {
+		flags.FileAlterPreservation = false
+	}
+	if util.GetBit(frameFlags1, 4) {
+		flags.ReadOnly = true
+	} else {
+		flags.ReadOnly = false
+	}
+	if util.GetBit(frameFlags2, 2) {
+		flags.InGroup = true
+	} else {
+		flags.InGroup = false
+	}
+	if util.GetBit(frameFlags2, 5) {
+		flags.Compressed = true
+	} else {
+		flags.Compressed = false
+	}
+	if util.GetBit(frameFlags2, 6) {
+		flags.Encrypted = true
+	} else {
+		flags.Encrypted = false
+	}
+	if util.GetBit(frameFlags2, 7) {
+		flags.Unsyrchronised = true
+	} else {
+		flags.Unsyrchronised = false
+	}
+	if util.GetBit(frameFlags2, 8) {
+		flags.HasDataLengthIndicator = true
+	} else {
+		flags.HasDataLengthIndicator = false
+	}
+
+	header.Flags = flags
+
+	return header, nil
+}
+
 // Structuralises frame header from given bytes. For versions see: constants.
 func getFrameHeader(fHeaderbytes []byte, version string) (FrameHeader, error) {
 	// validation check
@@ -55,75 +197,26 @@ func getFrameHeader(fHeaderbytes []byte, version string) (FrameHeader, error) {
 	}
 
 	var header FrameHeader
+	var err error
 
 	switch version {
 	case V2_2:
-		if !isValidFrameID(fHeaderbytes[0:3]) {
-			return FrameHeader{}, ErrInvalidID
+		header, err = getV22FrameHeader(fHeaderbytes)
+		if err != nil {
+			return FrameHeader{}, err
 		}
-		header.ID = string(fHeaderbytes[0:3])
-
-		framesizeBytes := util.BytesToIntSynchsafe(fHeaderbytes[3:6])
-		header.Size = framesizeBytes
 
 	case V2_3:
-		fallthrough
+		header, err = getV23FrameHeader(fHeaderbytes)
+		if err != nil {
+			return FrameHeader{}, err
+		}
 
 	case V2_4:
-		fallthrough
-
-	default:
-		// ID
-		if !isValidFrameID(fHeaderbytes[0:4]) {
-			return FrameHeader{}, ErrInvalidID
+		header, err = getV24FrameHeader(fHeaderbytes)
+		if err != nil {
+			return FrameHeader{}, err
 		}
-		header.ID = string(fHeaderbytes[0:4])
-
-		// Size
-		framesizeBytes := fHeaderbytes[4:8]
-
-		framesize := util.BytesToIntSynchsafe(framesizeBytes)
-
-		header.Size = framesize
-
-		// Flags
-		frameFlags1 := fHeaderbytes[8]
-		frameFlags2 := fHeaderbytes[9]
-
-		var flags FrameFlags
-
-		if util.GetBit(frameFlags1, 1) {
-			flags.TagAlterPreservation = true
-		} else {
-			flags.TagAlterPreservation = false
-		}
-		if util.GetBit(frameFlags1, 2) {
-			flags.FileAlterPreservation = true
-		} else {
-			flags.FileAlterPreservation = false
-		}
-		if util.GetBit(frameFlags1, 3) {
-			flags.ReadOnly = true
-		} else {
-			flags.ReadOnly = false
-		}
-		if util.GetBit(frameFlags2, 1) {
-			flags.Compressed = true
-		} else {
-			flags.Compressed = false
-		}
-		if util.GetBit(frameFlags2, 1) {
-			flags.Encrypted = true
-		} else {
-			flags.Encrypted = false
-		}
-		if util.GetBit(frameFlags2, 1) {
-			flags.InGroup = true
-		} else {
-			flags.InGroup = false
-		}
-
-		header.Flags = flags
 	}
 
 	return header, nil
@@ -173,6 +266,19 @@ func readNextFrame(r io.Reader, h Header) (Frame, uint64, error) {
 func (f *Frame) Text() string {
 	return util.DecodeText(f.Contents)
 }
+
+// Converts frame to ready-to-write bytes
+// func (f *Frame) ToBytes() []byte {
+// 	buff := new(bytes.Buffer)
+
+// 	// identifier
+// 	buff.Write([]byte(f.Header.ID))
+// 	// size
+// 	buff.Write(util.IntToBytesSynchsafe(f.Header.Size))
+// 	// flags
+
+// 	return buff.Bytes()
+// }
 
 // Returns bytes of the frame that can be
 // written into a file.

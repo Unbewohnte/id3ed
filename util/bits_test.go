@@ -12,3 +12,15 @@ func TestGetBit(t *testing.T) {
 		}
 	}
 }
+
+func TestSetBit(t *testing.T) {
+	var testByte byte = 0
+
+	if SetBit(testByte, 1) != 1 {
+		t.Errorf("SetBit failed: expected output %d; got %d", 1, SetBit(testByte, 1))
+	}
+
+	if SetBit(testByte, 8) != 255 {
+		t.Errorf("SetBit failed: expected output %d; got %d", 255, SetBit(testByte, 8))
+	}
+}
