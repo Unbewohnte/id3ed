@@ -1,6 +1,7 @@
 package v2
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"strings"
@@ -267,29 +268,86 @@ func (f *Frame) Text() string {
 	return util.DecodeText(f.Contents)
 }
 
+func v23FlagsToBytes(v23f FrameFlags) []byte {
+	var flags = []byte{0, 0}
+
+	if v23f.TagAlterPreservation {
+		flags[0] = util.SetBit(flags[0], 8)
+	}
+	if v23f.FileAlterPreservation {
+		flags[0] = util.SetBit(flags[0], 7)
+	}
+	if v23f.ReadOnly {
+		flags[0] = util.SetBit(flags[0], 6)
+	}
+
+	if v23f.Compressed {
+		flags[1] = util.SetBit(flags[1], 8)
+	}
+	if v23f.Encrypted {
+		flags[1] = util.SetBit(flags[1], 7)
+	}
+	if v23f.InGroup {
+		flags[1] = util.SetBit(flags[1], 6)
+	}
+
+	return flags
+}
+
+func v24FlagsToBytes(v24f FrameFlags) []byte {
+	var flagBytes = []byte{0, 0}
+
+	if v24f.TagAlterPreservation {
+		flagBytes[0] = util.SetBit(flagBytes[0], 7)
+	}
+	if v24f.FileAlterPreservation {
+		flagBytes[0] = util.SetBit(flagBytes[0], 6)
+	}
+	if v24f.ReadOnly {
+		flagBytes[0] = util.SetBit(flagBytes[0], 5)
+	}
+
+	if v24f.InGroup {
+		flagBytes[1] = util.SetBit(flagBytes[1], 7)
+	}
+	if v24f.Compressed {
+		flagBytes[1] = util.SetBit(flagBytes[1], 4)
+	}
+	if v24f.Encrypted {
+		flagBytes[1] = util.SetBit(flagBytes[1], 3)
+	}
+	if v24f.Unsyrchronised {
+		flagBytes[1] = util.SetBit(flagBytes[1], 2)
+	}
+	if v24f.HasDataLengthIndicator {
+		flagBytes[1] = util.SetBit(flagBytes[1], 1)
+	}
+
+	return flagBytes
+}
+
 // Converts frame to ready-to-write bytes
-// func (f *Frame) ToBytes() []byte {
-// 	buff := new(bytes.Buffer)
+func (f *Frame) toBytes(version string) []byte {
+	buff := new(bytes.Buffer)
 
-// 	// identifier
-// 	buff.Write([]byte(f.Header.ID))
-// 	// size
-// 	buff.Write(util.IntToBytesSynchsafe(f.Header.Size))
-// 	// flags
+	// identifier
+	buff.Write([]byte(f.Header.ID))
 
-// 	return buff.Bytes()
-// }
+	// size
+	buff.Write(util.IntToBytesSynchsafe(f.Header.Size))
 
-// Returns bytes of the frame that can be
-// written into a file.
-// func (f *Frame) Bytes() ([]byte, error) {
-// 	header := f.Header
-// 	contents := f.Contents
+	// flags
+	var flagBytes []byte
+	switch version {
+	case V2_2:
+		break
+	case V2_3:
+		flagBytes = v23FlagsToBytes(f.Header.Flags)
+		buff.Write(flagBytes)
+	case V2_4:
+		flagBytes = v24FlagsToBytes(f.Header.Flags)
+		buff.Write(flagBytes)
+	}
 
-// 	var headerbytes []byte
-
-// 	identifierBytes := []byte(header.ID)
-// 	// sizeBytes
-
-// 	return nil, nil
-// }
+	return buff.Bytes()
+}
