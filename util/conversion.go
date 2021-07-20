@@ -1,6 +1,7 @@
 package util
 
 import (
+	"encoding/binary"
 	"strings"
 
 	euni "golang.org/x/text/encoding/unicode"
@@ -17,6 +18,13 @@ func BytesToInt(gBytes []byte) uint32 {
 		integer = integer | uint32(b)
 	}
 	return integer
+}
+
+// Simply converts given uint32 into synch unsafe bytes
+func IntToBytes(gInt uint32) []byte {
+	buff := make([]byte, 4)
+	binary.BigEndian.PutUint32(buff, gInt)
+	return buff
 }
 
 // Decodes given integer bytes into integer, ignores the first bit

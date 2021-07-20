@@ -1,6 +1,8 @@
 package util
 
 import (
+	"fmt"
+	"strconv"
 	"testing"
 )
 
@@ -46,5 +48,21 @@ func TestIntToBytesSynchsafe(t *testing.T) {
 		if synchsafeInt != testInt {
 			t.Errorf("BytesToIntSynchsafe failed: expected to get %d; got %d", testInt, synchsafeInt)
 		}
+	}
+}
+
+func TestIntToBytes(t *testing.T) {
+	var testInt uint32 = 124567
+	testIntBits := fmt.Sprintf("%032b", testInt)
+
+	gotBytes := IntToBytes(testInt)
+
+	i := 0
+	for _, gotByte := range gotBytes {
+		correctByte, _ := strconv.ParseUint(testIntBits[i:i+8], 2, 8)
+		if gotByte != byte(correctByte) {
+			t.Errorf("IntToBytes failed: expected byte to be %d; got %d", correctByte, gotByte)
+		}
+		i += 8
 	}
 }

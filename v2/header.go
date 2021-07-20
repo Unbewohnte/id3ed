@@ -10,7 +10,7 @@ import (
 
 // Main header`s flags
 type HeaderFlags struct {
-	Unsynchronisated  bool
+	Unsynchronised    bool
 	Compressed        bool
 	HasExtendedHeader bool
 	Experimental      bool
@@ -19,7 +19,7 @@ type HeaderFlags struct {
 
 // ID3v2.x`s main header structure
 type Header struct {
-	Identifier     string
+	// Identifier     string
 	Flags          HeaderFlags
 	Version        string
 	Size           uint32
@@ -197,7 +197,6 @@ func readHeader(rs io.ReadSeeker) (Header, error) {
 	if !bytes.Equal([]byte(HEADERIDENTIFIER), identifier) {
 		return Header{}, ErrDoesNotUseID3v2
 	}
-	header.Identifier = string(identifier)
 
 	// version
 	majorVersion := int(hBytes[3])
@@ -221,9 +220,9 @@ func readHeader(rs io.ReadSeeker) (Header, error) {
 	switch header.Version {
 	case V2_2:
 		if util.GetBit(flags, 1) {
-			header.Flags.Unsynchronisated = true
+			header.Flags.Unsynchronised = true
 		} else {
-			header.Flags.Unsynchronisated = false
+			header.Flags.Unsynchronised = false
 		}
 		if util.GetBit(flags, 2) {
 			header.Flags.Compressed = true
@@ -232,9 +231,9 @@ func readHeader(rs io.ReadSeeker) (Header, error) {
 		}
 	case V2_3:
 		if util.GetBit(flags, 1) {
-			header.Flags.Unsynchronisated = true
+			header.Flags.Unsynchronised = true
 		} else {
-			header.Flags.Unsynchronisated = false
+			header.Flags.Unsynchronised = false
 		}
 		if util.GetBit(flags, 2) {
 			header.Flags.HasExtendedHeader = true
@@ -251,9 +250,9 @@ func readHeader(rs io.ReadSeeker) (Header, error) {
 
 	case V2_4:
 		if util.GetBit(flags, 1) {
-			header.Flags.Unsynchronisated = true
+			header.Flags.Unsynchronised = true
 		} else {
-			header.Flags.Unsynchronisated = false
+			header.Flags.Unsynchronised = false
 		}
 		if util.GetBit(flags, 2) {
 			header.Flags.HasExtendedHeader = true
@@ -287,4 +286,147 @@ func readHeader(rs io.ReadSeeker) (Header, error) {
 	}
 
 	return header, nil
+}
+
+// Converts given HeaderFlags struct into ready-to-write byte
+// containing flags
+func headerFlagsToByte(hf HeaderFlags, version string) byte {
+	var flagsByte byte = 0
+	switch version {
+	case V2_2:
+		if hf.Unsynchronised {
+			flagsByte = util.SetBit(flagsByte, 8)
+		}
+		if hf.Compressed {
+			flagsByte = util.SetBit(flagsByte, 7)
+		}
+
+	case V2_3:
+		if hf.Unsynchronised {
+			flagsByte = util.SetBit(flagsByte, 8)
+		}
+		if hf.HasExtendedHeader {
+			flagsByte = util.SetBit(flagsByte, 7)
+		}
+		if hf.Experimental {
+			flagsByte = util.SetBit(flagsByte, 6)
+		}
+
+	case V2_4:
+		if hf.Unsynchronised {
+			flagsByte = util.SetBit(flagsByte, 8)
+		}
+		if hf.HasExtendedHeader {
+			flagsByte = util.SetBit(flagsByte, 7)
+		}
+		if hf.Experimental {
+			flagsByte = util.SetBit(flagsByte, 6)
+		}
+		if hf.FooterPresent {
+			flagsByte = util.SetBit(flagsByte, 5)
+		}
+
+	}
+	return flagsByte
+}
+
+// Converts given header into ready-to-write bytes
+func (h *Header) toBytes() []byte {
+	buff := new(bytes.Buffer)
+
+	// id
+	buff.Write([]byte(HEADERIDENTIFIER))
+
+	// version
+	version := []byte{0, 0}
+	switch h.Version {
+	case V2_2:
+		version = []byte{2, 0}
+	case V2_3:
+		version = []byte{3, 0}
+	case V2_4:
+		version = []byte{4, 0}
+	}
+	buff.Write(version)
+
+	// flags
+	flagByte := headerFlagsToByte(h.Flags, h.Version)
+	buff.WriteByte(flagByte)
+
+	// size
+	tagSize := util.IntToBytesSynchsafe(h.Size)
+	buff.Write(tagSize)
+
+	// extended header
+	if !h.Flags.HasExtendedHeader {
+		return buff.Bytes()
+	}
+
+	// double check for possible errors
+	if h.Version == V2_2 {
+		return buff.Bytes()
+	}
+
+	// size
+	extSize := util.IntToBytes(h.ExtendedHeader.Size)
+	buff.Write(extSize)
+
+	// flags and other version specific fields
+	switch h.Version {
+	case V2_3:
+		// flags
+		flagBytes := []byte{0, 0}
+		if h.ExtendedHeader.Flags.CRCpresent {
+			flagBytes[0] = util.SetBit(flagBytes[0], 8)
+		}
+		buff.Write(flagBytes)
+
+		// crc data
+		if h.ExtendedHeader.Flags.CRCpresent {
+			buff.Write(h.ExtendedHeader.CRCdata)
+		}
+
+		// padding size
+		paddingSize := util.IntToBytes(h.ExtendedHeader.PaddingSize)
+		buff.Write(paddingSize)
+
+	case V2_4:
+		numberOfFlagBytes := byte(1)
+		buff.WriteByte(numberOfFlagBytes)
+
+		extFlags := byte(0)
+		if h.ExtendedHeader.Flags.UpdateTag {
+			extFlags = util.SetBit(extFlags, 7)
+		}
+		if h.ExtendedHeader.Flags.CRCpresent {
+			extFlags = util.SetBit(extFlags, 6)
+		}
+		if h.ExtendedHeader.Flags.HasRestrictions {
+			extFlags = util.SetBit(extFlags, 5)
+		}
+
+		buff.WriteByte(extFlags)
+
+		// writing data, provided by flags
+		if h.ExtendedHeader.Flags.UpdateTag {
+			// data len
+			buff.WriteByte(0)
+		}
+
+		if h.ExtendedHeader.Flags.CRCpresent {
+			// data len
+			buff.WriteByte(5)
+			// data
+			buff.Write(h.ExtendedHeader.CRCdata)
+		}
+
+		if h.ExtendedHeader.Flags.HasRestrictions {
+			// data len
+			buff.WriteByte(1)
+			// data
+			buff.WriteByte(h.ExtendedHeader.Flags.Restrictions)
+		}
+	}
+
+	return buff.Bytes()
 }
