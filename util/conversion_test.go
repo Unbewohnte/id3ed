@@ -37,6 +37,9 @@ func TestIntToBytesSynchsafe(t *testing.T) {
 
 	for _, testInt := range testInts {
 		synchSafeBytes := IntToBytesSynchsafe(testInt)
+		if len(synchSafeBytes) != 4 {
+			t.Errorf("IntToBytesSynchsafe failed: expected len to be %d; got %d", 4, len(synchSafeBytes))
+		}
 
 		synchsafeInt := BytesToIntSynchsafe(synchSafeBytes)
 

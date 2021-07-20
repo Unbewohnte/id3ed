@@ -35,7 +35,7 @@ func BytesToIntSynchsafe(gBytes []byte) uint32 {
 // Finally understood with the help of: https://github.com/bogem/id3v2/blob/master/size.go ,
 // thank you very much !
 func IntToBytesSynchsafe(gInt uint32) []byte {
-	synchsafeIBytes := make([]byte, 4)
+	var synchsafeIBytes []byte
 
 	// skip 4 0`ed bits
 	gInt = gInt << 4
@@ -71,15 +71,22 @@ func ToStringLossy(gBytes []byte) string {
 	return strings.ToValidUTF8(string(runes), "")
 }
 
+const (
+	EncodingISO8859 byte = iota
+	EncodingUTF16BOM
+	EncodingUTF16
+	EncodingUTF8
+)
+
 // Decodes the given frame`s contents
 func DecodeText(fContents []byte) string {
 	textEncoding := fContents[0] // the first byte is the encoding
 
 	switch textEncoding {
-	case 0:
+	case EncodingISO8859:
 		// ISO-8859-1
 		return ToStringLossy(fContents[1:])
-	case 1:
+	case EncodingUTF16BOM:
 		// UTF-16 with BOM
 		encoding := euni.UTF16(euni.BigEndian, euni.ExpectBOM)
 		decoder := encoding.NewDecoder()
@@ -92,7 +99,7 @@ func DecodeText(fContents []byte) string {
 
 		return string(decodedBytes)
 
-	case 2:
+	case EncodingUTF16:
 		// UTF-16
 		encoding := euni.UTF16(euni.BigEndian, euni.IgnoreBOM)
 		decoder := encoding.NewDecoder()
@@ -105,7 +112,7 @@ func DecodeText(fContents []byte) string {
 
 		return string(decodedBytes)
 
-	case 3:
+	case EncodingUTF8:
 		// UTF-8
 		return ToStringLossy(fContents[1:])
 	}
