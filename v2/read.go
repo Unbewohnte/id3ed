@@ -15,26 +15,45 @@ func ReadV2Tag(rs io.ReadSeeker) (*ID3v2Tag, error) {
 
 	}
 
-	// collect frames
-	var read uint64 = 10 // because already read header
+	var read uint64 = 0
 	var frames []Frame
 	for {
-		if read > uint64(header.Size) {
+		if read == uint64(header.Size) {
 			break
+		} else if read > uint64(header.Size) {
+			// read more than required, but did not
+			// encouter padding, something is wrong here
+			return nil, ErrReadMoreThanSize
 		}
 
-		frame, r, err := readNextFrame(rs, header)
-		if err == ErrGotPadding || err == ErrBiggerThanSize || err == ErrInvalidID {
-			break
-		}
+		frame, err := readNextFrame(rs, header.Version)
+		switch err {
+		case nil:
+		case ErrGotPadding:
+			// expected error, just return what we`ve collected
+			return &ID3v2Tag{
+				Header: header,
+				Frames: frames,
+			}, nil
+		case ErrInvalidID:
+			// expected error, just return what we`ve collected
+			return &ID3v2Tag{
+				Header: header,
+				Frames: frames,
+			}, nil
 
-		if err != nil {
-			return nil, fmt.Errorf("could not read frame: %s", err)
+		default:
+			return nil, err
 		}
-
-		read += r
 
 		frames = append(frames, frame)
+
+		// counting how many bytes read
+		if header.Version == V2_2 {
+			read += uint64(V2_2FrameHeaderSize) + uint64(frame.Header.Size)
+		} else {
+			read += uint64(V2_3FrameHeaderSize) + uint64(frame.Header.Size)
+		}
 	}
 
 	return &ID3v2Tag{
