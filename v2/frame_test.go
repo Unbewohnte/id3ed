@@ -19,7 +19,7 @@ func TestReadNextFrame(t *testing.T) {
 		t.Errorf("%s", err)
 	}
 
-	firstFrame, err := readNextFrame(f, header.Version)
+	firstFrame, err := readNextFrame(f, header.Version())
 	if err != nil {
 		t.Errorf("ReadFrame failed: %s", err)
 	}
@@ -34,7 +34,7 @@ func TestReadNextFrame(t *testing.T) {
 			false, firstFrame.Header.Flags.Encrypted)
 	}
 
-	secondFrame, err := readNextFrame(f, header.Version)
+	secondFrame, err := readNextFrame(f, header.Version())
 	if err != nil {
 		t.Errorf("ReadFrame failed: %s", err)
 	}

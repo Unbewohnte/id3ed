@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	v1 "github.com/Unbewohnte/id3ed/v1"
+	v2 "github.com/Unbewohnte/id3ed/v2"
 )
 
 var TESTDATAPATH string = "testData"
@@ -19,8 +20,15 @@ func TestOpen(t *testing.T) {
 		t.Error("Open failed: expected testing file to not contain ID3v1")
 	}
 
+	// if file.ID3v1Tag
+
 	if !file.ContainsID3v2 {
 		t.Error("Open failed: expected testing file to contain ID3v2")
+	}
+
+	if file.ID3v2Tag.Header.Version() != v2.V2_4 {
+		t.Errorf("Open failed: id3v2tag: header: expected version to be %s; got %s",
+			v2.V2_4, file.ID3v2Tag.Header.Version())
 	}
 }
 

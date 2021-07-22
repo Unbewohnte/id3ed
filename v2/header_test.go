@@ -21,16 +21,16 @@ func TestReadHeader(t *testing.T) {
 		t.Errorf("GetHeader failed: %s", err)
 	}
 
-	if header.Flags.HasExtendedHeader != false {
-		t.Errorf("GetHeader failed: expected flag %v; got %v", false, header.Flags.HasExtendedHeader)
+	if header.Flags().HasExtendedHeader != false {
+		t.Errorf("GetHeader failed: expected flag %v; got %v", false, header.Flags().HasExtendedHeader)
 	}
 
-	if header.Flags.Unsynchronised != false {
-		t.Errorf("GetHeader failed: expected flag %v; got %v", false, header.Flags.Unsynchronised)
+	if header.Flags().Unsynchronised != false {
+		t.Errorf("GetHeader failed: expected flag %v; got %v", false, header.Flags().Unsynchronised)
 	}
 
-	if header.Size != 1138 {
-		t.Errorf("GetHeader failed: expected size %v; got %v", 1138, header.Size)
+	if header.Size() != 1138 {
+		t.Errorf("GetHeader failed: expected size %v; got %v", 1138, header.Size())
 	}
 }
 
@@ -52,10 +52,10 @@ func TestHeaderFlagsToByte(t *testing.T) {
 
 func TestHeaderToBytes(t *testing.T) {
 	testHeader := Header{
-		Version:        V2_4,
-		Flags:          HeaderFlags{}, // all false
-		Size:           12345,
-		ExtendedHeader: ExtendedHeader{},
+		version:        V2_4,
+		flags:          HeaderFlags{}, // all false
+		size:           12345,
+		extendedHeader: ExtendedHeader{},
 	}
 
 	hBytes := testHeader.toBytes()
@@ -71,8 +71,8 @@ func TestHeaderToBytes(t *testing.T) {
 		t.Errorf("expected to get %s, got %s", HEADERIDENTIFIER, string(hBytes[0:3]))
 	}
 
-	if util.BytesToIntSynchsafe(hBytes[6:10]) != testHeader.Size {
+	if util.BytesToIntSynchsafe(hBytes[6:10]) != testHeader.Size() {
 		t.Errorf("toBytes failed: expected size to be %d; got %d",
-			testHeader.Size, util.BytesToIntSynchsafe(hBytes[7:10]))
+			testHeader.Size(), util.BytesToIntSynchsafe(hBytes[7:10]))
 	}
 }

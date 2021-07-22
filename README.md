@@ -2,13 +2,23 @@
 ## ⚬ Library for encoding/decoding ID3 tags
 
 ---
-  
-# Under construction !
 
-# Project status
+# Status of the package
 
-Right now it`s capable of reading and writing ID3v1 and ID3v1.1 tags,
-reading ID3v2. ID3v2 writing support is still not implemented.
+**ID3v1**. can:
+
+- read
+- write
+
+**ID3v1 Enhanced**. can:
+
+- read
+- write
+
+**ID3v2**. can: 
+
+- read
+
 
 ---
 
@@ -199,3 +209,11 @@ to test a specific package
 # ∙ License
 
 [MIT LICENSE](https://github.com/Unbewohnte/id3ed/blob/main/LICENSE)
+
+# ∙ Note
+
+This is **NOT** a fully tested and it is **NOT** a flawlessly working and edge-cases-covered package.
+
+I work on it alone and I am **NOT** a professional who knows what he does.
+
+Please, use with caution !

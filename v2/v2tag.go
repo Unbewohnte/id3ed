@@ -30,7 +30,7 @@ func (tag *ID3v2Tag) FrameExists(id string) bool {
 
 // Returns the contents for the title frame
 func (tag *ID3v2Tag) Title() string {
-	switch tag.Header.Version {
+	switch tag.Header.Version() {
 	case V2_2:
 		if !tag.FrameExists("TT2") {
 			return ""
@@ -46,7 +46,7 @@ func (tag *ID3v2Tag) Title() string {
 
 // Returns the contents for the album frame
 func (tag *ID3v2Tag) Album() string {
-	switch tag.Header.Version {
+	switch tag.Header.Version() {
 	case V2_2:
 		if !tag.FrameExists("TAL") {
 			return ""
@@ -62,7 +62,7 @@ func (tag *ID3v2Tag) Album() string {
 
 // Returns the contents for the artist frame
 func (tag *ID3v2Tag) Artist() string {
-	switch tag.Header.Version {
+	switch tag.Header.Version() {
 	case V2_2:
 		if !tag.FrameExists("TP1") {
 			return ""
@@ -78,7 +78,7 @@ func (tag *ID3v2Tag) Artist() string {
 
 // Returns the contents for the year frame
 func (tag *ID3v2Tag) Year() string {
-	switch tag.Header.Version {
+	switch tag.Header.Version() {
 	case V2_2:
 		if !tag.FrameExists("TYE") {
 			return ""
@@ -94,7 +94,7 @@ func (tag *ID3v2Tag) Year() string {
 
 // Returns the contents for the comment frame
 func (tag *ID3v2Tag) Comment() string {
-	switch tag.Header.Version {
+	switch tag.Header.Version() {
 	case V2_2:
 		if !tag.FrameExists("COM") {
 			return ""
@@ -110,7 +110,7 @@ func (tag *ID3v2Tag) Comment() string {
 
 // Returns raw bytes of embed picture
 func (tag *ID3v2Tag) Picture() []byte {
-	switch tag.Header.Version {
+	switch tag.Header.Version() {
 	case V2_2:
 		if !tag.FrameExists("PIC") {
 			return nil

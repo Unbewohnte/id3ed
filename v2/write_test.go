@@ -19,23 +19,9 @@ package v2
 // 	}
 // 	defer ff.Close()
 
-// 	err = testTag.write(ff)
+// 	// WRITING
+// 	err = testTag.WriteToFile(ff)
 // 	if err != nil {
-// 		t.Errorf("%s", err)
-// 	}
-
-// 	wroteTag, err := ReadV2Tag(ff)
-// 	if err != nil {
-// 		t.Errorf("%s", err)
-// 	}
-
-// 	// t.Errorf("ORIGINAL: %+v", testTag)
-// 	// t.Errorf("WRITTEN: %+v", wroteTag)
-// 	for _, origfr := range testTag.Frames {
-// 		t.Errorf("ORIG Fr: %+v\n", origfr)
-// 	}
-
-// 	for _, wrtfr := range wroteTag.Frames {
-// 		t.Errorf("WRITTEN Fr: %+v\n", wrtfr)
+// 		t.Errorf("WriteToFile failed: %s", err)
 // 	}
 // }

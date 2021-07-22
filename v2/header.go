@@ -19,14 +19,13 @@ type HeaderFlags struct {
 
 // ID3v2.x`s main header structure
 type Header struct {
-	// Identifier     string
-	Flags          HeaderFlags
-	Version        string
-	Size           uint32
-	ExtendedHeader ExtendedHeader
+	flags          HeaderFlags
+	version        string
+	size           uint32
+	extendedHeader ExtendedHeader
 }
 
-// extended header`s flags
+// Extended header`s flags
 type ExtendedHeaderFlags struct {
 	UpdateTag       bool
 	CRCpresent      bool
@@ -35,18 +34,41 @@ type ExtendedHeaderFlags struct {
 }
 
 type ExtendedHeader struct {
-	Size        uint32
-	Flags       ExtendedHeaderFlags
-	PaddingSize uint32
-	CRCdata     []byte
+	size        uint32
+	flags       ExtendedHeaderFlags
+	paddingSize uint32
+	crcData     []byte
+}
+
+// using ONLY getters on header, because
+// header MUST NOT be changed manually
+// from the outside of the package
+
+func (h *Header) Version() string {
+	return h.version
+}
+
+func (h *Header) Flags() HeaderFlags {
+	return h.flags
+}
+
+func (h *Header) Size() uint32 {
+	return h.size
+}
+
+func (h *Header) ExtendedHeader() *ExtendedHeader {
+	if h.flags.HasExtendedHeader {
+		return &h.extendedHeader
+	}
+	return nil
 }
 
 // Reads and structuralises extended header. Must
 // be called AFTER the main header has beeen read (does not seek).
 // ALSO ISN`T TESTED !!!
 func (h *Header) readExtendedHeader(r io.Reader) error {
-	h.ExtendedHeader = ExtendedHeader{}
-	if !h.Flags.HasExtendedHeader {
+	// h.ExtendedHeader = ExtendedHeader{}
+	if !h.Flags().HasExtendedHeader {
 		return nil
 	}
 
@@ -58,24 +80,24 @@ func (h *Header) readExtendedHeader(r io.Reader) error {
 		return fmt.Errorf("could not read from reader: %s", err)
 	}
 
-	switch h.Version {
+	switch h.Version() {
 	case V2_3:
-		extended.Size = util.BytesToInt(extendedSize)
+		extended.size = util.BytesToInt(extendedSize)
 	case V2_4:
-		extended.Size = util.BytesToIntSynchsafe(extendedSize)
+		extended.size = util.BytesToIntSynchsafe(extendedSize)
 	}
 
 	// extended flags
-	switch h.Version {
+	switch h.Version() {
 	case V2_3:
 		extendedFlag, err := util.Read(r, 2) // reading flag byte and a null-byte after
 		if err != nil {
 			return fmt.Errorf("could not read from reader: %s", err)
 		}
 		if util.GetBit(extendedFlag[0], 1) {
-			extended.Flags.CRCpresent = true
+			extended.flags.CRCpresent = true
 		} else {
-			extended.Flags.CRCpresent = false
+			extended.flags.CRCpresent = false
 		}
 
 	case V2_4:
@@ -90,39 +112,39 @@ func (h *Header) readExtendedHeader(r io.Reader) error {
 		}
 
 		if util.GetBit(flagByte[0], 2) {
-			extended.Flags.UpdateTag = true
+			extended.flags.UpdateTag = true
 		} else {
-			extended.Flags.UpdateTag = false
+			extended.flags.UpdateTag = false
 		}
 
 		if util.GetBit(flagByte[0], 3) {
-			extended.Flags.CRCpresent = true
+			extended.flags.CRCpresent = true
 		} else {
-			extended.Flags.CRCpresent = false
+			extended.flags.CRCpresent = false
 		}
 
 		if util.GetBit(flagByte[0], 4) {
-			extended.Flags.HasRestrictions = true
+			extended.flags.HasRestrictions = true
 		} else {
-			extended.Flags.HasRestrictions = false
+			extended.flags.HasRestrictions = false
 		}
 	}
 
 	// extracting data given by flags
-	switch h.Version {
+	switch h.Version() {
 	case V2_3:
-		if extended.Flags.CRCpresent {
+		if extended.flags.CRCpresent {
 			crcData, err := util.Read(r, 4)
 			if err != nil {
 				return fmt.Errorf("could not read from reader: %s", err)
 			}
-			extended.CRCdata = crcData
+			extended.crcData = crcData
 		}
 
 	case V2_4:
 		// `Each flag that is set in the extended header has data attached`
 
-		if extended.Flags.UpdateTag {
+		if extended.flags.UpdateTag {
 			// skipping null-byte length of `UpdateTag`
 			_, err := util.Read(r, 1)
 			if err != nil {
@@ -130,7 +152,7 @@ func (h *Header) readExtendedHeader(r io.Reader) error {
 			}
 		}
 
-		if extended.Flags.CRCpresent {
+		if extended.flags.CRCpresent {
 			crclen, err := util.Read(r, 1)
 			if err != nil {
 				return fmt.Errorf("could not read from reader: %s", err)
@@ -139,10 +161,10 @@ func (h *Header) readExtendedHeader(r io.Reader) error {
 			if err != nil {
 				return fmt.Errorf("could not read from reader: %s", err)
 			}
-			extended.CRCdata = crcData
+			extended.crcData = crcData
 		}
 
-		if extended.Flags.HasRestrictions {
+		if extended.flags.HasRestrictions {
 			// skipping one-byte length of `Restrictions`, because it`s always `1`
 			_, err := util.Read(r, 1)
 			if err != nil {
@@ -154,24 +176,24 @@ func (h *Header) readExtendedHeader(r io.Reader) error {
 				return fmt.Errorf("could not read from reader: %s", err)
 			}
 			// a `lazy` approach :), just for now
-			extended.Flags.Restrictions = restrictionsByte[0]
+			extended.flags.Restrictions = restrictionsByte[0]
 		}
 	}
 
 	// extracting other version-dependent header data
 
 	// padding if V2_3
-	if h.Version == V2_3 {
+	if h.Version() == V2_3 {
 		paddingSizeBytes, err := util.Read(r, 4)
 		if err != nil {
 			return fmt.Errorf("could not read from reader: %s", err)
 		}
 		paddingSize := util.BytesToInt(paddingSizeBytes)
-		extended.PaddingSize = paddingSize
+		extended.paddingSize = paddingSize
 	}
 
 	// finally `attaching` parsed extended header to the main *Header
-	h.ExtendedHeader = extended
+	h.extendedHeader = extended
 
 	return nil
 }
@@ -204,11 +226,11 @@ func readHeader(rs io.ReadSeeker) (Header, error) {
 
 	switch majorVersion {
 	case 2:
-		header.Version = V2_2
+		header.version = V2_2
 	case 3:
-		header.Version = V2_3
+		header.version = V2_3
 	case 4:
-		header.Version = V2_4
+		header.version = V2_4
 	default:
 		return Header{}, fmt.Errorf("ID3v2.%d.%d is not supported or invalid", majorVersion, revisionNumber)
 	}
@@ -217,57 +239,57 @@ func readHeader(rs io.ReadSeeker) (Header, error) {
 	flags := hBytes[5]
 
 	// v3.0 and v4.0 have different amount of flags
-	switch header.Version {
+	switch header.Version() {
 	case V2_2:
 		if util.GetBit(flags, 1) {
-			header.Flags.Unsynchronised = true
+			header.flags.Unsynchronised = true
 		} else {
-			header.Flags.Unsynchronised = false
+			header.flags.Unsynchronised = false
 		}
 		if util.GetBit(flags, 2) {
-			header.Flags.Compressed = true
+			header.flags.Compressed = true
 		} else {
-			header.Flags.Compressed = false
+			header.flags.Compressed = false
 		}
 	case V2_3:
 		if util.GetBit(flags, 1) {
-			header.Flags.Unsynchronised = true
+			header.flags.Unsynchronised = true
 		} else {
-			header.Flags.Unsynchronised = false
+			header.flags.Unsynchronised = false
 		}
 		if util.GetBit(flags, 2) {
-			header.Flags.HasExtendedHeader = true
+			header.flags.HasExtendedHeader = true
 		} else {
-			header.Flags.HasExtendedHeader = false
+			header.flags.HasExtendedHeader = false
 		}
 		if util.GetBit(flags, 3) {
-			header.Flags.Experimental = true
+			header.flags.Experimental = true
 		} else {
-			header.Flags.Experimental = false
+			header.flags.Experimental = false
 		}
 		// always false, because ID3v2.3.0 does not support footers
-		header.Flags.FooterPresent = false
+		header.flags.FooterPresent = false
 
 	case V2_4:
 		if util.GetBit(flags, 1) {
-			header.Flags.Unsynchronised = true
+			header.flags.Unsynchronised = true
 		} else {
-			header.Flags.Unsynchronised = false
+			header.flags.Unsynchronised = false
 		}
 		if util.GetBit(flags, 2) {
-			header.Flags.HasExtendedHeader = true
+			header.flags.HasExtendedHeader = true
 		} else {
-			header.Flags.HasExtendedHeader = false
+			header.flags.HasExtendedHeader = false
 		}
 		if util.GetBit(flags, 3) {
-			header.Flags.Experimental = true
+			header.flags.Experimental = true
 		} else {
-			header.Flags.Experimental = false
+			header.flags.Experimental = false
 		}
 		if util.GetBit(flags, 4) {
-			header.Flags.FooterPresent = true
+			header.flags.FooterPresent = true
 		} else {
-			header.Flags.FooterPresent = false
+			header.flags.FooterPresent = false
 		}
 	}
 
@@ -276,9 +298,9 @@ func readHeader(rs io.ReadSeeker) (Header, error) {
 
 	size := util.BytesToIntSynchsafe(sizeBytes)
 
-	header.Size = size
+	header.size = size
 
-	if header.Flags.HasExtendedHeader {
+	if header.flags.HasExtendedHeader {
 		err = header.readExtendedHeader(rs)
 		if err != nil {
 			return header, err
@@ -339,7 +361,7 @@ func (h *Header) toBytes() []byte {
 
 	// version
 	version := []byte{0, 0}
-	switch h.Version {
+	switch h.Version() {
 	case V2_2:
 		version = []byte{2, 0}
 	case V2_3:
@@ -350,44 +372,44 @@ func (h *Header) toBytes() []byte {
 	buff.Write(version)
 
 	// flags
-	flagByte := headerFlagsToByte(h.Flags, h.Version)
+	flagByte := headerFlagsToByte(h.flags, h.version)
 	buff.WriteByte(flagByte)
 
 	// size
-	tagSize := util.IntToBytesSynchsafe(h.Size)
+	tagSize := util.IntToBytesSynchsafe(h.size)
 	buff.Write(tagSize)
 
 	// extended header
-	if !h.Flags.HasExtendedHeader {
+	if !h.flags.HasExtendedHeader {
 		return buff.Bytes()
 	}
 
 	// double check for possible errors
-	if h.Version == V2_2 {
+	if h.Version() == V2_2 {
 		return buff.Bytes()
 	}
 
 	// size
-	extSize := util.IntToBytes(h.ExtendedHeader.Size)
+	extSize := util.IntToBytes(h.extendedHeader.size)
 	buff.Write(extSize)
 
 	// flags and other version specific fields
-	switch h.Version {
+	switch h.Version() {
 	case V2_3:
 		// flags
 		flagBytes := []byte{0, 0}
-		if h.ExtendedHeader.Flags.CRCpresent {
+		if h.extendedHeader.flags.CRCpresent {
 			flagBytes[0] = util.SetBit(flagBytes[0], 8)
 		}
 		buff.Write(flagBytes)
 
 		// crc data
-		if h.ExtendedHeader.Flags.CRCpresent {
-			buff.Write(h.ExtendedHeader.CRCdata)
+		if h.extendedHeader.flags.CRCpresent {
+			buff.Write(h.extendedHeader.crcData)
 		}
 
 		// padding size
-		paddingSize := util.IntToBytes(h.ExtendedHeader.PaddingSize)
+		paddingSize := util.IntToBytes(h.extendedHeader.paddingSize)
 		buff.Write(paddingSize)
 
 	case V2_4:
@@ -395,36 +417,36 @@ func (h *Header) toBytes() []byte {
 		buff.WriteByte(numberOfFlagBytes)
 
 		extFlags := byte(0)
-		if h.ExtendedHeader.Flags.UpdateTag {
+		if h.extendedHeader.flags.UpdateTag {
 			extFlags = util.SetBit(extFlags, 7)
 		}
-		if h.ExtendedHeader.Flags.CRCpresent {
+		if h.extendedHeader.flags.CRCpresent {
 			extFlags = util.SetBit(extFlags, 6)
 		}
-		if h.ExtendedHeader.Flags.HasRestrictions {
+		if h.extendedHeader.flags.HasRestrictions {
 			extFlags = util.SetBit(extFlags, 5)
 		}
 
 		buff.WriteByte(extFlags)
 
 		// writing data, provided by flags
-		if h.ExtendedHeader.Flags.UpdateTag {
+		if h.extendedHeader.flags.UpdateTag {
 			// data len
 			buff.WriteByte(0)
 		}
 
-		if h.ExtendedHeader.Flags.CRCpresent {
+		if h.extendedHeader.flags.CRCpresent {
 			// data len
 			buff.WriteByte(5)
 			// data
-			buff.Write(h.ExtendedHeader.CRCdata)
+			buff.Write(h.extendedHeader.crcData)
 		}
 
-		if h.ExtendedHeader.Flags.HasRestrictions {
+		if h.extendedHeader.flags.HasRestrictions {
 			// data len
 			buff.WriteByte(1)
 			// data
-			buff.WriteByte(h.ExtendedHeader.Flags.Restrictions)
+			buff.WriteByte(h.extendedHeader.flags.Restrictions)
 		}
 	}
 

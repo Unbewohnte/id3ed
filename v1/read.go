@@ -11,9 +11,28 @@ import (
 
 var errDoesNotUseEnhancedID3v1 error = fmt.Errorf("does not use enhanced ID3v1 tag")
 
+// Checks if rs contains a regular ID3v1 TAG
+func containsTAG(rs io.ReadSeeker) bool {
+	_, err := rs.Seek(-int64(TAGSIZE), io.SeekEnd)
+	if err != nil {
+		return false
+	}
+
+	identifier, err := util.Read(rs, 3)
+	if err != nil {
+		return false
+	}
+
+	if string(identifier) != IDENTIFIER {
+		return false
+	}
+
+	return true
+}
+
 // Checks if enhanced tag is used
-func usesEnhancedTag(rs io.ReadSeeker) bool {
-	_, err := rs.Seek(-int64(ID3v1SIZE+ENHANCEDSIZE), io.SeekEnd)
+func containsEnhancedTAG(rs io.ReadSeeker) bool {
+	_, err := rs.Seek(-int64(TAGSIZE+ENHANCEDSIZE), io.SeekEnd)
 	if err != nil {
 		return false
 	}
@@ -21,7 +40,7 @@ func usesEnhancedTag(rs io.ReadSeeker) bool {
 	if err != nil {
 		return false
 	}
-	if !bytes.Equal(identifier, []byte(ID3v1ENHANCEDIDENTIFIER)) {
+	if !bytes.Equal(identifier, []byte(ENHANCEDIDENTIFIER)) {
 		return false
 	}
 
@@ -30,15 +49,15 @@ func usesEnhancedTag(rs io.ReadSeeker) bool {
 
 // Tries to read enhanced ID3V1 tag from rs
 func readEnhancedTag(rs io.ReadSeeker) (EnhancedID3v1Tag, error) {
-
-	if !usesEnhancedTag(rs) {
+	if !containsEnhancedTAG(rs) {
+		// rs does not contain enhanced TAG, there is nothing to read
 		return EnhancedID3v1Tag{}, errDoesNotUseEnhancedID3v1
 	}
 
 	var enhanced EnhancedID3v1Tag
 
 	// set reader into the position
-	_, err := rs.Seek(-int64(ID3v1SIZE+ENHANCEDSIZE), io.SeekEnd)
+	_, err := rs.Seek(-int64(TAGSIZE+ENHANCEDSIZE), io.SeekEnd)
 	if err != nil {
 		return enhanced, fmt.Errorf("could not seek: %s", err)
 	}
@@ -111,26 +130,15 @@ func readEnhancedTag(rs io.ReadSeeker) (EnhancedID3v1Tag, error) {
 func Readv1Tag(rs io.ReadSeeker) (*ID3v1Tag, error) {
 	var tag ID3v1Tag
 
-	// check if uses enhanced tag
-	if usesEnhancedTag(rs) {
+	// check if need to read enhanced tag
+	if containsEnhancedTAG(rs) {
 		enhanced, _ := readEnhancedTag(rs)
+		tag.HasEnhancedTag = true
 		tag.EnhancedTag = enhanced
 	}
 
-	// set reader to the last 128 bytes
-	_, err := rs.Seek(-int64(ID3v1SIZE), io.SeekEnd)
-	if err != nil {
-		return nil, fmt.Errorf("could not seek: %s", err)
-	}
-
-	// ID
-	identifier, err := util.Read(rs, 3)
-	if err != nil {
-		return nil, err
-	}
-
-	if !bytes.Equal(identifier, []byte(ID3v1IDENTIFIER)) {
-		// no identifier, given file does not use ID3v1
+	if !containsTAG(rs) {
+		// no TAG to read
 		return nil, ErrDoesNotUseID3v1
 	}
 
