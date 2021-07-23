@@ -41,6 +41,7 @@ func containsEnhancedTAG(rs io.ReadSeeker) bool {
 		return false
 	}
 	if !bytes.Equal(identifier, []byte(ENHANCEDIDENTIFIER)) {
+		fmt.Printf("UWAH: %s ---- %s\n", identifier, ENHANCEDIDENTIFIER)
 		return false
 	}
 
@@ -88,19 +89,7 @@ func readEnhancedTag(rs io.ReadSeeker) (EnhancedID3v1Tag, error) {
 		return enhanced, err
 	}
 
-	var speed string
-	switch speedByte[0] {
-	case 0:
-		speed = "Unset"
-	case 1:
-		speed = "Slow"
-	case 2:
-		speed = "Medium"
-	case 3:
-		speed = "Fast"
-	case 4:
-		speed = "Hardcore"
-	}
+	var speed string = EnhancedSpeed[int(speedByte[0])]
 	enhanced.Speed = speed
 
 	// genre

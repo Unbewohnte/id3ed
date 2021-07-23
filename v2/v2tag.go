@@ -7,11 +7,23 @@ type ID3v2Tag struct {
 	Frames []Frame
 }
 
+// Creates a new v2 tag from given created frames
+func NewTAG(frames []Frame) *ID3v2Tag {
+	var newtag ID3v2Tag
+
+	header := newHeader(frames)
+
+	newtag.Header = *header
+	newtag.Frames = frames
+
+	return &newtag
+}
+
 // Searches for frame with the same identifier as id in tag,
 // returns &it if found
 func (tag *ID3v2Tag) GetFrame(id string) *Frame {
 	for _, frame := range tag.Frames {
-		if strings.EqualFold(frame.Header.ID, id) {
+		if strings.EqualFold(frame.Header.ID(), id) {
 			return &frame
 		}
 	}
@@ -21,7 +33,7 @@ func (tag *ID3v2Tag) GetFrame(id string) *Frame {
 // Checks if a frame with given id exists
 func (tag *ID3v2Tag) FrameExists(id string) bool {
 	for _, frame := range tag.Frames {
-		if strings.EqualFold(frame.Header.ID, id) {
+		if strings.EqualFold(frame.Header.ID(), id) {
 			return true
 		}
 	}

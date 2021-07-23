@@ -26,3 +26,11 @@ type EnhancedID3v1Tag struct {
 	StartTime string
 	EndTime   string
 }
+
+var EnhancedSpeed = map[int]string{
+	0: "Unset",
+	1: "Slow",
+	2: "Medium",
+	3: "Fast",
+	4: "Hardcore",
+}

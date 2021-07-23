@@ -2,6 +2,7 @@ package v2
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"unicode"
 
@@ -20,14 +21,28 @@ type FrameFlags struct {
 }
 
 type FrameHeader struct {
-	ID    string
-	Size  uint32
-	Flags FrameFlags
+	id    string
+	size  uint32
+	flags FrameFlags
 }
 
 type Frame struct {
 	Header   FrameHeader
 	Contents []byte
+}
+
+// getters
+
+func (fh *FrameHeader) ID() string {
+	return fh.id
+}
+
+func (fh *FrameHeader) Size() uint32 {
+	return fh.size
+}
+
+func (fh *FrameHeader) Flags() FrameFlags {
+	return fh.flags
 }
 
 // Checks if given identifier is valid by specification
@@ -50,10 +65,10 @@ func isValidID(frameID string) bool {
 func getV22FrameHeader(fHeaderbytes []byte) FrameHeader {
 	var header FrameHeader
 
-	header.ID = string(fHeaderbytes[0:3])
+	header.id = string(fHeaderbytes[0:3])
 
 	framesizeBytes := util.BytesToIntSynchsafe(fHeaderbytes[3:6])
-	header.Size = framesizeBytes
+	header.size = framesizeBytes
 
 	return header
 }
@@ -62,14 +77,14 @@ func getV23FrameHeader(fHeaderbytes []byte) FrameHeader {
 	var header FrameHeader
 
 	// ID
-	header.ID = string(fHeaderbytes[0:4])
+	header.id = string(fHeaderbytes[0:4])
 
 	// Size
 	framesizeBytes := fHeaderbytes[4:8]
 
 	framesize := util.BytesToIntSynchsafe(framesizeBytes)
 
-	header.Size = framesize
+	header.size = framesize
 
 	// Flags
 	frameFlags1 := fHeaderbytes[8]
@@ -108,7 +123,7 @@ func getV23FrameHeader(fHeaderbytes []byte) FrameHeader {
 		flags.InGroup = false
 	}
 
-	header.Flags = flags
+	header.flags = flags
 
 	return header
 }
@@ -116,14 +131,14 @@ func getV23FrameHeader(fHeaderbytes []byte) FrameHeader {
 func getV24FrameHeader(fHeaderbytes []byte) FrameHeader {
 	var header FrameHeader
 
-	header.ID = string(fHeaderbytes[0:4])
+	header.id = string(fHeaderbytes[0:4])
 
 	// Size
 	framesizeBytes := fHeaderbytes[4:8]
 
 	framesize := util.BytesToIntSynchsafe(framesizeBytes)
 
-	header.Size = framesize
+	header.size = framesize
 
 	// Flags
 	frameFlags1 := fHeaderbytes[8]
@@ -172,7 +187,7 @@ func getV24FrameHeader(fHeaderbytes []byte) FrameHeader {
 		flags.HasDataLengthIndicator = false
 	}
 
-	header.Flags = flags
+	header.flags = flags
 
 	return header
 }
@@ -229,7 +244,7 @@ func readNextFrame(r io.Reader, version string) (Frame, error) {
 	frame.Header = frameHeader
 
 	// Contents
-	contents, err := util.Read(r, uint64(frameHeader.Size))
+	contents, err := util.Read(r, uint64(frameHeader.size))
 	if err != nil {
 		return Frame{}, err
 	}
@@ -309,17 +324,25 @@ func frameFlagsToBytes(ff FrameFlags, version string) []byte {
 }
 
 // Converts frame to ready-to-write bytes
-func (f *Frame) toBytes(version string) []byte {
+func (f *Frame) toBytes() []byte {
 	buff := new(bytes.Buffer)
 
 	// identifier
-	buff.Write([]byte(f.Header.ID))
+	buff.Write([]byte(f.Header.id))
 
 	// size
-	buff.Write(util.IntToBytesSynchsafe(f.Header.Size))
+	buff.Write(util.IntToBytesSynchsafe(f.Header.size))
 
 	// flags
-	flagBytes := frameFlagsToBytes(f.Header.Flags, version)
+
+	var version string
+	if len(f.Header.id) == 4 {
+		version = V2_4
+	} else {
+		version = V2_2
+	}
+
+	flagBytes := frameFlagsToBytes(f.Header.flags, version)
 	if flagBytes != nil {
 		buff.Write(flagBytes)
 	}
@@ -328,4 +351,39 @@ func (f *Frame) toBytes(version string) []byte {
 	buff.Write(f.Contents)
 
 	return buff.Bytes()
+}
+
+// Constructs a new frame from provided information.
+// isTextFrame must be set to true if gContents are not a binary data.
+// Returns an error if provided id`s len is neither 3 or 4
+func NewFrame(id string, gContents []byte, isTextframe bool) (*Frame, error) {
+	if len(id) != 3 && len(id) != 4 {
+		return nil, fmt.Errorf("frame identifier`s length must be 3 or 4")
+	}
+
+	var fheader FrameHeader
+
+	// contents
+	var contents []byte
+	if isTextframe {
+		// add UTF-8 encoding byte
+		contents = []byte{util.EncodingUTF8}
+		contents = append(contents, gContents...)
+	} else {
+		contents = gContents
+	}
+
+	// id
+	fheader.id = id
+
+	// size
+	fheader.size = uint32(len(contents))
+
+	// flags (all false)
+	fheader.flags = FrameFlags{}
+
+	return &Frame{
+		Header:   fheader,
+		Contents: contents,
+	}, nil
 }

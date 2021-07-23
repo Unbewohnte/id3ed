@@ -50,9 +50,9 @@ func ReadV2Tag(rs io.ReadSeeker) (*ID3v2Tag, error) {
 
 		// counting how many bytes read
 		if header.Version() == V2_2 {
-			read += uint64(V2_2FrameHeaderSize) + uint64(frame.Header.Size)
+			read += uint64(V2_2FrameHeaderSize) + uint64(frame.Header.Size())
 		} else {
-			read += uint64(V2_3FrameHeaderSize) + uint64(frame.Header.Size)
+			read += uint64(V2_3FrameHeaderSize) + uint64(frame.Header.Size())
 		}
 	}
 

@@ -18,6 +18,7 @@ var TESTv1TAG = &ID3v1Tag{
 		Artist:   "ARRRTIST",
 		Album:    "ALLLLBUUUM",
 		SongName: "NAME",
+		Speed:    EnhancedSpeed[2],
 	},
 }
 

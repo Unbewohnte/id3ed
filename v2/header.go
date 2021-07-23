@@ -452,3 +452,32 @@ func (h *Header) toBytes() []byte {
 
 	return buff.Bytes()
 }
+
+// Creates an appropriate header based on
+// provided frames
+func newHeader(frames []Frame) *Header {
+	var header Header
+
+	// flags (all false)
+	header.flags = HeaderFlags{}
+
+	// version
+	if len(frames[0].Header.ID()) == 4 {
+		header.version = V2_4
+	} else {
+		header.version = V2_2
+	}
+
+	// size
+	var framesSize uint32 = 0
+	for _, frame := range frames {
+		framesSize += uint32(len(frame.toBytes()))
+	}
+
+	header.size = framesSize
+
+	// extended header (not used)
+	header.extendedHeader = ExtendedHeader{}
+
+	return &header
+}

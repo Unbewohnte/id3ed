@@ -45,7 +45,8 @@ func (tag *ID3v1Tag) write(dst io.WriteSeeker) error {
 		}
 
 		// Speed
-		_, err = dst.Write([]byte(tag.EnhancedTag.Speed))
+		speed := util.GetKey(EnhancedSpeed, tag.EnhancedTag.Speed)
+		_, err = dst.Write([]byte{byte(speed)})
 		if err != nil {
 			return err
 		}
@@ -162,8 +163,10 @@ func (tag *ID3v1Tag) WriteToFile(f *os.File) error {
 	switch {
 
 	case containsEnhancedTAG(f) && containsTAG(f):
+		fmt.Println("HEA1")
+
 		// remove both
-		err = f.Truncate(filesize - int64(TAGSIZE) - int64(ENHANCEDSIZE))
+		err = f.Truncate(filesize - int64(TAGSIZE+ENHANCEDSIZE))
 		if err != nil {
 			return fmt.Errorf("could not truncate file %s", err)
 		}
@@ -174,6 +177,8 @@ func (tag *ID3v1Tag) WriteToFile(f *os.File) error {
 		}
 
 	case containsEnhancedTAG(f) && !containsTAG(f):
+		fmt.Println("HEA2")
+
 		// remove enhanced tag, replace with new
 		err = f.Truncate(filesize - int64(ENHANCEDSIZE))
 		if err != nil {
@@ -186,6 +191,8 @@ func (tag *ID3v1Tag) WriteToFile(f *os.File) error {
 		}
 
 	case !containsEnhancedTAG(f) && containsTAG(f):
+		fmt.Println("HEA3")
+
 		// remove regular one, replace with new
 		err = f.Truncate(filesize - int64(TAGSIZE))
 		if err != nil {
@@ -198,6 +205,8 @@ func (tag *ID3v1Tag) WriteToFile(f *os.File) error {
 		}
 
 	case !containsEnhancedTAG(f) && !containsTAG(f):
+		fmt.Println("HEA4")
+
 		// no existing TAGs, simply write what we have
 		err := tag.write(f)
 		if err != nil {

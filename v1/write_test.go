@@ -20,5 +20,4 @@ func TestWriteID3v1ToFile(t *testing.T) {
 	if err != nil {
 		t.Errorf("WriteID3v1ToFile failed: %s", err)
 	}
-
 }

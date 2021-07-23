@@ -1,6 +1,6 @@
 package v2
 
-// Writes ID3v2Tag to ws
+// // Writes ID3v2Tag to ws
 // func (tag *ID3v2Tag) write(ws io.WriteSeeker) error {
 // 	_, err := ws.Seek(0, io.SeekStart)
 // 	if err != nil {
@@ -8,11 +8,17 @@ package v2
 // 	}
 
 // 	// write header
-// 	ws.Write(tag.Header.toBytes())
+// 	_, err = ws.Write(tag.Header.toBytes())
+// 	if err != nil {
+// 		return fmt.Errorf("could not write to writer: %s", err)
+// 	}
 
 // 	// write frames
 // 	for _, frame := range tag.Frames {
-// 		ws.Write(frame.toBytes(tag.Header.Version()))
+// 		_, err = ws.Write(frame.toBytes())
+// 		if err != nil {
+// 			return fmt.Errorf("could not write to writer: %s", err)
+// 		}
 // 	}
 
 // 	return nil
