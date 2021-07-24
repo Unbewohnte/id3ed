@@ -51,3 +51,20 @@ func TestWriteID3v1(t *testing.T) {
 		t.Errorf("WriteID3v1 failed: %s", err)
 	}
 }
+
+func TestWriteID3v2(t *testing.T) {
+	file, err := Open(filepath.Join(TESTDATAPATH, "testwritev2.mp3"))
+	if err != nil {
+		t.Errorf("Open failed: %s", err)
+	}
+
+	frame1, _ := v2.NewFrame("COMM", []byte("Very Cool Song"), true)
+	frame2, _ := v2.NewFrame("TXXX", []byte("\n\n\n\n\n\n\nF\n\n\n\n"), true)
+
+	v2tag := v2.NewTAG([]v2.Frame{*frame1, *frame2})
+
+	err = file.WriteID3v2(v2tag)
+	if err != nil {
+		t.Errorf("WriteID3v2 failed: %s", err)
+	}
+}

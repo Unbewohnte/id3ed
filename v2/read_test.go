@@ -17,6 +17,10 @@ func TestReadV2Tag(t *testing.T) {
 		t.Errorf("GetV2Tag failed: %s", err)
 	}
 
+	if tag.Padding != 1024 {
+		t.Errorf("GetV2Tag failed: expected to have %d padding bytes: got %d", 1024, tag.Padding)
+	}
+
 	titleFrame := tag.GetFrame("TIT2")
 
 	if titleFrame.Text() != "title" {
@@ -33,5 +37,10 @@ func TestReadV2Tag(t *testing.T) {
 	picture := tag.Picture()
 	if picture != nil {
 		t.Errorf("ReadV2Tag failed: expected file not to have a picture")
+	}
+
+	genre := tag.GetFrame("TCON")
+	if genre == nil {
+		t.Errorf("ReadV2Tag failed: expected genre to be %s; got %v", "anime", genre)
 	}
 }

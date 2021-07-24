@@ -41,7 +41,6 @@ func containsEnhancedTAG(rs io.ReadSeeker) bool {
 		return false
 	}
 	if !bytes.Equal(identifier, []byte(ENHANCEDIDENTIFIER)) {
-		fmt.Printf("UWAH: %s ---- %s\n", identifier, ENHANCEDIDENTIFIER)
 		return false
 	}
 

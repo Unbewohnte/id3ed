@@ -3,8 +3,9 @@ package v2
 import "strings"
 
 type ID3v2Tag struct {
-	Header Header
-	Frames []Frame
+	Header  Header
+	Frames  []Frame
+	Padding uint32
 }
 
 // Creates a new v2 tag from given created frames

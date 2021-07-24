@@ -58,7 +58,7 @@ func Open(path string) (*File, error) {
 func (f *File) WriteID3v1(tag *v1.ID3v1Tag) error {
 	fhandler, err := os.OpenFile(f.path, os.O_RDWR, os.ModePerm)
 	if err != nil {
-		return fmt.Errorf("could not read a file: %s", err)
+		return fmt.Errorf("could not open a file: %s", err)
 	}
 	defer fhandler.Close()
 
@@ -70,7 +70,18 @@ func (f *File) WriteID3v1(tag *v1.ID3v1Tag) error {
 	return nil
 }
 
-// still not implemented
-// func (f *File) WriteID3v2(tag *v2.ID3v2Tag) error {
-// 	return nil
-// }
+// Writes given ID3v2 tag to file
+func (f *File) WriteID3v2(tag *v2.ID3v2Tag) error {
+	fhandler, err := os.OpenFile(f.path, os.O_RDWR, os.ModePerm)
+	if err != nil {
+		return fmt.Errorf("could not open a file: %s", err)
+	}
+	defer fhandler.Close()
+
+	err = tag.WriteToFile(fhandler)
+	if err != nil {
+		return fmt.Errorf("could not write ID3v2 to file: %s", err)
+	}
+
+	return nil
+}
